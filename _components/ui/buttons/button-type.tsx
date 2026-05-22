@@ -10,7 +10,10 @@ const ButtonType = ({
   cssClasses,
   type = "submit",
   disabled = false,
-  redButton = false,
+  colorTeal,
+  colorOrange,
+  colorGrey,
+  secondary,
   ariaLabel,
   title,
 }: ButtonProps) => {
@@ -21,7 +24,7 @@ const ButtonType = ({
       type={type}
       onClick={onClick}
       aria-label={ariaLabel}
-      className={buttonStyles(cssClasses, disabled, pending, redButton)}
+      className={buttonStyles(cssClasses, disabled, pending, colorTeal, colorOrange, colorGrey, secondary)}
       disabled={disabled || pending}
       title={title}
     >

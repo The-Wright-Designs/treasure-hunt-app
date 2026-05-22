@@ -6,6 +6,8 @@
   --color-orange: #E37434;
   --color-teal: #4B9DA9;
   --color-white: #FFFFFF;
+  --color-link: #0000EE;
+  --color-error: #DC2626;
 
   --text-*: initial;
   --text-heading: 2rem;
@@ -70,7 +72,7 @@
   }
 
   a {
-    @apply text-secondary ease-in-out duration-300;
+    @apply text-link ease-in-out duration-300;
   }
 }
 
@@ -96,7 +98,7 @@ html {
   top: 0;
   left: 0;
   border: 3px solid transparent;
-  border-top-color: #000000;
+  border-top-color: #4B9DA9;
   animation: spin 1s linear infinite;
 }
 
@@ -117,8 +119,8 @@ html {
 /* swiper styles */
 
 :root {
-  --swiper-pagination-color: #000000;
-  --swiper-pagination-bullet-inactive-color: #000000;
+  --swiper-pagination-color: #4B9DA9;
+  --swiper-pagination-bullet-inactive-color: #4B9DA9;
   --swiper-pagination-bullet-inactive-opacity: 0.5;
   --swiper-pagination-bullet-size: 8px;
   --swiper-pagination-bullet-horizontal-gap: 4px;

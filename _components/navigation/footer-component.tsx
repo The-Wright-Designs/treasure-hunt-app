@@ -37,9 +37,6 @@ const FooterComponent = () => {
               />
               <h1 className="text-[40px] font-semibold flex flex-col items-center gap-2 text-center tablet:text-[24px] tablet:text-right tablet:items-end tablet:gap-1">
                 Treasure Hunt App
-                <span className="text-[16px] font-extralight tablet:text-[14px]">
-                  {COMPANY_LOCATION}
-                </span>
               </h1>
             </Link>
             <hr className="border-black/25 w-[125px] tablet:hidden" />
