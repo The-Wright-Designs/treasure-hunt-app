@@ -1,0 +1,192 @@
+@import "tailwindcss";
+
+@theme {
+  --color-*: initial;
+  --color-black: #1D1D1D;
+  --color-orange: #E37434;
+  --color-teal: #4B9DA9;
+  --color-white: #FFFFFF;
+
+  --text-*: initial;
+  --text-heading: 2rem;
+  --text-heading--font-weight: 600;
+  --text-heading--line-height: 1;
+  --text-paragraph: 0.875rem;
+  --text-paragraph--font-weight: 400;
+  --text-paragraph--line-height: 1.3;
+  --text-subheading: 0.875rem;
+  --text-subheading--font-weight: 700;
+  --text-subheading--line-height: 1.3;
+
+  --breakpoint-*: initial;
+  --breakpoint-phone: 425px;
+  --breakpoint-tablet: 800px;
+  --breakpoint-desktop: 1280px;
+}
+
+@font-face {
+  font-family: "Miranda Sans";
+  src: url("../_font/miranda-sans.woff2") format("woff2"),
+    url("../_font/miranda-sans.woff") format("woff"),
+    url("../_font/miranda-sans.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Miranda Sans";
+  src: url("../_font/miranda-sans-italic.woff2") format("woff2"),
+    url("../_font/miranda-sans-italic.woff") format("woff"),
+    url("../_font/miranda-sans-italic.ttf") format("truetype");
+  font-weight: 200 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+@layer components {
+  * {
+    @apply text-black;
+    font-family: "Miranda Sans", Arial, sans-serif;
+  }
+
+  h1,
+  h2 {
+    @apply text-heading;
+  }
+
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply text-subheading;
+  }
+
+  p,
+  input,
+  textarea,
+  span {
+    @apply text-paragraph;
+  }
+
+  a {
+    @apply text-secondary ease-in-out duration-300;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* spinner styles */
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  position: relative;
+}
+
+.spinner::before,
+.spinner::after {
+  content: "";
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  border: 3px solid transparent;
+  border-top-color: #000000;
+  animation: spin 1s linear infinite;
+}
+
+.spinner::after {
+  animation-delay: 0.5s;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* swiper styles */
+
+:root {
+  --swiper-pagination-color: #000000;
+  --swiper-pagination-bullet-inactive-color: #000000;
+  --swiper-pagination-bullet-inactive-opacity: 0.5;
+  --swiper-pagination-bullet-size: 8px;
+  --swiper-pagination-bullet-horizontal-gap: 4px;
+}
+
+.swiper-pagination-v {
+  left: -30px !important;
+}
+
+.swiper,
+.swiper-pagination-bullets-dynamic {
+  overflow: visible !important;
+}
+
+.swiper-button-next,
+.swiper-button-prev {
+  width: 40px !important;
+  height: 100% !important;
+  @apply bg-white/80;
+  top: 22px !important;
+  transition: all 0.2s ease;
+}
+
+.swiper-button-next:after,
+.swiper-button-prev:after {
+  font-size: 20px !important;
+  color: #000000;
+  transition: color 0.2s ease;
+}
+
+.swiper-button-next {
+  right: 0 !important;
+}
+
+.swiper-button-prev {
+  left: 0 !important;
+}
+
+.swiper-button-next:hover,
+.swiper-button-prev:hover {
+  @apply bg-black/80;
+}
+
+.swiper-button-next:hover:after,
+.swiper-button-prev:hover:after {
+  color: white;
+}
+
+.swiper-button-next::after {
+  content: "next";
+}
+
+.swiper-button-prev::after {
+  content: "prev";
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.grecaptcha-badge {
+  visibility: hidden;
+}
