@@ -22,7 +22,7 @@ export default function FooterComponent() {
           key={href}
           href={href}
           className={classNames(
-            "flex flex-1 flex-col items-center justify-center gap-1.5 py-3 desktop:hover:cursor-pointer",
+            "flex flex-1 flex-col items-center justify-center gap-1.5 py-7.5 desktop:hover:cursor-pointer",
             { "bg-black/90": active },
           )}
         >

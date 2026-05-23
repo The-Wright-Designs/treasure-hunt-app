@@ -119,11 +119,12 @@ html {
 /* swiper styles */
 
 :root {
-  --swiper-pagination-color: #4B9DA9;
-  --swiper-pagination-bullet-inactive-color: #4B9DA9;
+  --swiper-pagination-color: #1D1D1D;
+  --swiper-pagination-bullet-inactive-color: #1D1D1D;
   --swiper-pagination-bullet-inactive-opacity: 0.5;
-  --swiper-pagination-bullet-size: 8px;
+  --swiper-pagination-bullet-size: 6px;
   --swiper-pagination-bullet-horizontal-gap: 4px;
+  --swiper-pagination-bottom: "1px",
 }
 
 .swiper-pagination-v {
