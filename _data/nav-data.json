@@ -1,18 +1,27 @@
 [
   {
-    "title": "Home",
-    "url": "/"
+    "title": "Profile",
+    "url": "/profile",
+    "icon": "CircleUser"
   },
   {
-    "title": "About",
-    "url": "/#about"
+    "title": "Sponsors",
+    "url": "/sponsors",
+    "icon": "BadgeCheck"
   },
   {
-    "title": "Services",
-    "url": "/#services"
+    "title": "Announcements",
+    "url": "/announcements",
+    "icon": "Megaphone"
+  },
+  {
+    "title": "Safety Tips",
+    "url": "/safety-tips",
+    "icon": "ShieldCheck"
   },
   {
     "title": "Contact",
-    "url": "/#contact"
+    "url": "/contact",
+    "icon": "Phone"
   }
 ]
