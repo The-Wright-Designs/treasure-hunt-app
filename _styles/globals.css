@@ -124,7 +124,7 @@ html {
   --swiper-pagination-bullet-inactive-opacity: 0.5;
   --swiper-pagination-bullet-size: 6px;
   --swiper-pagination-bullet-horizontal-gap: 4px;
-  --swiper-pagination-bottom: "1px",
+  --swiper-pagination-bottom: "-10px",
 }
 
 .swiper-pagination-v {

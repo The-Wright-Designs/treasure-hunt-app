@@ -1,12 +1,12 @@
 import classNames from "classnames";
-import { MapPinned, ShieldCheck, Megaphone } from "lucide-react";
+import { ShieldCheck, Megaphone } from "lucide-react";
 import ButtonLink from "@/_components/ui/buttons/button-link";
 import CardSlider from "@/_components/ui/cards/card-slider";
 
 interface InfoCardProps {
   backgroundColor?: "orange" | "teal";
   heading: string;
-  icon: "map-pinned" | "shield-check" | "megaphone";
+  icon: "shield-check" | "megaphone";
   buttonLink?: string;
   buttonText: string;
   buttonColor?: "teal" | "orange" | "grey" | "black";
@@ -16,7 +16,6 @@ interface InfoCardProps {
 }
 
 const iconMap = {
-  "map-pinned": MapPinned,
   "shield-check": ShieldCheck,
   megaphone: Megaphone,
 };

@@ -4,5 +4,10 @@
     "Always let a trusted adult know where you're going and who you'll be with before heading out.",
     "Trust your instincts — if a situation feels uncomfortable or unsafe, it's okay to leave and seek help.",
     "Keep your phone charged and have emergency contacts saved so you can reach help quickly if needed."
-  ]
+  ],
+  "activeHunt": {
+    "deadline": "2026-08-14T10:00:00+02:00",
+    "prizeAmount": 500,
+    "activeHunters": 38
+  }
 }

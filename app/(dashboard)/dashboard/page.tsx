@@ -1,11 +1,26 @@
 import InfoCard from "@/_components/ui/cards/info-card";
+import HuntCard from "@/_components/ui/cards/hunt-card";
 import generalData from "@/_data/general-data.json";
+import { formatDeadlineLabel } from "@/_lib/utils/format-deadline";
+
+const { activeHunt } = generalData;
+const { deadline: deadlineIso, prizeAmount, activeHunters } = activeHunt;
+const deadlineDisplay = formatDeadlineLabel(deadlineIso);
 
 const Dashboard = () => {
   return (
     <div className="flex flex-col gap-10 px-5 py-10">
       <h2>Dashboard</h2>
       <main className="flex flex-col gap-10">
+        <HuntCard
+          heading="Active hunt"
+          buttonLink="#"
+          buttonText="Join the hunt"
+          deadline={deadlineIso}
+          deadlineLabel={deadlineDisplay}
+          prizeAmount={prizeAmount}
+          activeHunters={activeHunters}
+        />
         <InfoCard
           heading="Announcements"
           icon="megaphone"

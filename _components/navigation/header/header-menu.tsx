@@ -35,7 +35,7 @@ export default function HeaderMenu({
     <div className={classNames(cssClasses)}>
       <div
         className={classNames(
-          "fixed top-[81px] right-0 bottom-[75px] z-40 max-w-[200px] transform bg-white/95 border-l border-black/25 transition-transform duration-300 ease-in-out",
+          "fixed top-[81px] right-0 bottom-[110px] z-40 max-w-[200px] transform bg-white/95 border-l border-black/25 transition-transform duration-300 ease-in-out",
           {
             "translate-x-full": !isOpen,
           },

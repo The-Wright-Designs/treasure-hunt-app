@@ -16,7 +16,7 @@ const navItems = [
 
 export default function FooterComponent() {
   return (
-    <footer className="fixed bottom-0 flex w-full border-t border-black/50 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.1)]">
+    <footer className="sticky z-50 bg-white bottom-0 flex w-full border-t border-black/50 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.1)]">
       {navItems.map(({ href, label, icon: Icon, active }) => (
         <Link
           key={href}
