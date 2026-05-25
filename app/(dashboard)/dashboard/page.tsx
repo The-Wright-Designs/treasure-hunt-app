@@ -1,11 +1,9 @@
-import InfoCard from "@/_components/ui/cards/info-card";
-import HuntCard from "@/_components/ui/cards/hunt-card";
+import InfoCard from "@/_components/ui/cards/active-hunt/info-card";
+import HuntCard from "@/_components/ui/cards/active-hunt/hunt-card";
 import generalData from "@/_data/general-data.json";
-import { formatDeadlineLabel } from "@/_lib/utils/format-deadline";
 
 const { activeHunt } = generalData;
 const { deadline: deadlineIso, prizeAmount, activeHunters } = activeHunt;
-const deadlineDisplay = formatDeadlineLabel(deadlineIso);
 
 const Dashboard = () => {
   return (

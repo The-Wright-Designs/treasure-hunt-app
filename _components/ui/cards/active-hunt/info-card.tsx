@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import { ShieldCheck, Megaphone } from "lucide-react";
 import ButtonLink from "@/_components/ui/buttons/button-link";
-import CardSlider from "@/_components/ui/cards/card-slider";
+import CardSlider from "@/_components/ui/cards/active-hunt/card-slider";
 
 interface InfoCardProps {
   backgroundColor?: "orange" | "teal";

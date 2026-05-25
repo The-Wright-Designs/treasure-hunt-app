@@ -1,5 +1,5 @@
 import { MapPinned } from "lucide-react";
-import HuntCard from "@/_components/ui/cards/hunt-card";
+import HuntCard from "@/_components/ui/cards/active-hunt/hunt-card";
 import MapComponent from "@/_components/ui/google-map";
 import data from "@/_data/general-data.json";
 
