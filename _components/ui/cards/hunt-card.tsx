@@ -2,6 +2,7 @@ import classNames from "classnames";
 import { MapPinned } from "lucide-react";
 import ButtonLink from "@/_components/ui/buttons/button-link";
 import CountdownTimer from "@/_components/ui/countdown-timer";
+import { formatDeadlineLabel } from "@/_lib/utils/format-deadline";
 
 interface HuntCardProps {
   heading: string;
@@ -9,7 +10,6 @@ interface HuntCardProps {
   buttonText: string;
   cssClasses?: string;
   deadline: string;
-  deadlineLabel: string;
   prizeAmount: number;
   activeHunters: number;
 }
@@ -20,7 +20,6 @@ const HuntCard = ({
   buttonText,
   cssClasses,
   deadline,
-  deadlineLabel,
   prizeAmount,
   activeHunters,
 }: HuntCardProps) => {
@@ -28,7 +27,7 @@ const HuntCard = ({
     <div
       className={classNames(
         "bg-orange rounded-[6px] shadow-[0px_4px_4px_0px_rgba(0,0,0,0.1)] flex flex-col gap-5 p-5 overflow-hidden",
-        cssClasses
+        cssClasses,
       )}
     >
       <div className="flex items-center justify-between">
@@ -42,7 +41,7 @@ const HuntCard = ({
       <div className="flex flex-col gap-1">
         <div className="flex gap-[10px]">
           <p className="text-white w-[140px] shrink-0">Deadline:</p>
-          <p className="text-white flex-1">{deadlineLabel}</p>
+          <p className="text-white flex-1">{formatDeadlineLabel(deadline)}</p>
         </div>
         <div className="flex gap-[10px]">
           <p className="text-white w-[140px] shrink-0">Prize:</p>

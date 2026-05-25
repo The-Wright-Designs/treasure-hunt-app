@@ -17,7 +17,6 @@ const Dashboard = () => {
           buttonLink="#"
           buttonText="Join the hunt"
           deadline={deadlineIso}
-          deadlineLabel={deadlineDisplay}
           prizeAmount={prizeAmount}
           activeHunters={activeHunters}
         />

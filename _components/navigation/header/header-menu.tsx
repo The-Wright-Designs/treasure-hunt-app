@@ -10,7 +10,7 @@ import {
   LucideProps,
 } from "lucide-react";
 
-import navData from "@/_data/nav-data.json";
+import { headerNav } from "@/_data/nav-data.json";
 
 const iconMap: Record<string, React.ComponentType<LucideProps>> = {
   CircleUser,
@@ -43,7 +43,7 @@ export default function HeaderMenu({
       >
         <nav className="p-7">
           <ul className="grid gap-5">
-            {navData.map(({ title, url, icon }) => {
+            {headerNav.map(({ title, url, icon }) => {
               const Icon = iconMap[icon];
               return (
                 <li key={title}>

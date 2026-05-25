@@ -8,6 +8,9 @@
   "activeHunt": {
     "deadline": "2026-08-14T10:00:00+02:00",
     "prizeAmount": 500,
-    "activeHunters": 38
+    "activeHunters": 38,
+    "mapLongitude": 23.37803971900292,
+    "mapLatitude": -34.06090378023144,
+    "mapZoom": 15
   }
 }

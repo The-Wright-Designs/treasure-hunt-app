@@ -1,27 +1,51 @@
-[
-  {
-    "title": "Profile",
-    "url": "/profile",
-    "icon": "CircleUser"
-  },
-  {
-    "title": "Sponsors",
-    "url": "/sponsors",
-    "icon": "BadgeCheck"
-  },
-  {
-    "title": "Announcements",
-    "url": "/announcements",
-    "icon": "Megaphone"
-  },
-  {
-    "title": "Safety Tips",
-    "url": "/safety-tips",
-    "icon": "ShieldCheck"
-  },
-  {
-    "title": "Contact",
-    "url": "/contact",
-    "icon": "Phone"
-  }
-]
+{
+  "headerNav": [
+    {
+      "title": "Profile",
+      "url": "/profile",
+      "icon": "CircleUser"
+    },
+    {
+      "title": "Sponsors",
+      "url": "/sponsors",
+      "icon": "BadgeCheck"
+    },
+    {
+      "title": "Announcements",
+      "url": "/announcements",
+      "icon": "Megaphone"
+    },
+    {
+      "title": "Safety Tips",
+      "url": "/safety-tips",
+      "icon": "ShieldCheck"
+    },
+    {
+      "title": "Contact",
+      "url": "/contact",
+      "icon": "Phone"
+    }
+  ],
+  "footerNav": [
+    {
+      "label": "Dashboard",
+      "url": "/dashboard",
+      "icon": "House"
+    },
+    {
+      "label": "Active Hunt",
+      "url": "/active-hunt",
+      "icon": "MapPinned"
+    },
+    {
+      "label": "Achievements",
+      "url": "/achievements",
+      "icon": "Trophy"
+    },
+    {
+      "label": "Share",
+      "url": "/share",
+      "icon": "Share2"
+    }
+  ]
+}
