@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import "@/_styles/globals.css";
 import HeaderComponent from "@/_components/navigation/header/header-component";
 import FooterComponent from "@/_components/navigation/footer-component";
+import BodyWrapper from "@/_components/layout/body-wrapper";
+import { ShareModalProvider } from "@/_context/share-modal-context";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.treasure-hunt-app.com"),
@@ -41,9 +43,11 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-        <HeaderComponent />
-        {children}
-        <FooterComponent />
+        <ShareModalProvider>
+          <HeaderComponent />
+          <BodyWrapper>{children}</BodyWrapper>
+          <FooterComponent />
+        </ShareModalProvider>
       </body>
     </html>
   );
