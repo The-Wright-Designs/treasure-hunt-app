@@ -11,13 +11,13 @@ export default function ShareModal({ cssClasses }: ShareModalProps) {
     <div
       className={classNames(
         "bg-white border-2 border-black rounded-[6px] flex flex-col items-center gap-5 p-5",
-        cssClasses
+        cssClasses,
       )}
     >
       <h3 className="whitespace-nowrap">Share this app with your friends</h3>
-      <Link href="#" className="desktop:hover:cursor-pointer">
+      <Link href="#" className="p-2 -m-2 desktop:hover:cursor-pointer">
         <Image
-          src="/icons/WhatsApp/whatsapp.svg"
+          src="/icons/whatsapp.svg"
           alt="Share on WhatsApp"
           width={32}
           height={32}

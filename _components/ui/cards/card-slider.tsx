@@ -17,14 +17,13 @@ const CardSlider = ({ slides, cssClasses }: CardSliderProps) => {
       <Swiper
         modules={[Pagination, Autoplay]}
         pagination={{ dynamicBullets: true }}
-        autoplay={{ delay: 4000, disableOnInteraction: false }}
+        autoplay={{ delay: 8000, disableOnInteraction: true }}
         loop={true}
+        spaceBetween={20}
       >
         {slides.map((slide, index) => (
-          <SwiperSlide key={index}>
-            <div className="bg-white rounded-[6px] p-3 pb-8">
-              <p>{slide}</p>
-            </div>
+          <SwiperSlide key={index} className="bg-white rounded-[6px] p-3">
+            <p className="h-[120px]">{slide}</p>
           </SwiperSlide>
         ))}
       </Swiper>

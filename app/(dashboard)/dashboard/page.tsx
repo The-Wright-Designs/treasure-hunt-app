@@ -1,4 +1,4 @@
-import InfoCard from "@/_components/ui/cards/active-hunt/info-card";
+import InfoCard from "@/_components/ui/cards/info-card";
 import HuntCard from "@/_components/ui/cards/active-hunt/hunt-card";
 import generalData from "@/_data/general-data.json";
 
@@ -12,7 +12,7 @@ const Dashboard = () => {
       <main className="flex flex-col gap-10">
         <HuntCard
           heading="Active hunt"
-          buttonLink="#"
+          buttonLink="/active-hunt"
           buttonText="Join the hunt"
           deadline={deadlineIso}
           prizeAmount={prizeAmount}
@@ -21,7 +21,7 @@ const Dashboard = () => {
         <InfoCard
           heading="Announcements"
           icon="megaphone"
-          buttonLink="#"
+          buttonLink="/announcements"
           buttonText="More announcements"
           backgroundColor="teal"
         >
@@ -31,7 +31,7 @@ const Dashboard = () => {
         <InfoCard
           heading="Safety Tips"
           icon="shield-check"
-          buttonLink="#"
+          buttonLink="/safety-tips"
           buttonText="More safety tips"
           sliderData={generalData.safetyTips}
         />

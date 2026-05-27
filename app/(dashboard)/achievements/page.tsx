@@ -1,5 +1,5 @@
 import { Trophy } from "lucide-react";
-import PastHuntCard from "@/_components/ui/cards/active-hunt/achievements/past-hunt-card";
+import PastHuntCard from "@/_components/ui/cards/achievements/past-hunt-card";
 import data from "@/_data/general-data.json";
 
 const { pastHunts } = data;
