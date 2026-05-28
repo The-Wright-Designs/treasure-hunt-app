@@ -14,6 +14,7 @@ interface Props {
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   error?: string;
+  disabled?: boolean;
 }
 
 const TextInput = ({
@@ -26,6 +27,7 @@ const TextInput = ({
   value,
   onChange,
   error,
+  disabled = false,
 }: Props) => {
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = type === "password";
@@ -45,9 +47,11 @@ const TextInput = ({
           required={required}
           value={value}
           onChange={onChange}
+          disabled={disabled}
           className={classNames(
             "bg-white border rounded-[6px] px-3 py-2 w-full placeholder:text-black/25 outline-none",
             error ? "border-error" : "border-black/50",
+            disabled && "opacity-50",
           )}
           style={error ? { borderColor: "#DC2626" } : undefined}
         />

@@ -20,7 +20,7 @@ export default function FooterComponent() {
   const { isOpen, open, close } = useShareModal();
 
   return (
-    <footer className="sticky z-50 bg-white bottom-0 flex w-full border-t border-black/50 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.1)]">
+    <footer className="fixed z-50 bg-white bottom-0 flex w-full border-t border-black/50 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.1)]">
       {footerNav.map(({ url, label, icon }) => {
         const Icon = iconMap[icon];
         const isShare = icon === "Share2";
@@ -53,6 +53,7 @@ export default function FooterComponent() {
           <Link
             key={url}
             href={url}
+            onClick={close}
             className={classNames(
               "flex flex-1 flex-col items-center justify-center gap-1.5 py-7.5 desktop:hover:cursor-pointer",
               { "bg-black/90": active },
