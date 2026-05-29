@@ -13,7 +13,7 @@ export default function BodyWrapper({
   const { isOpen, close } = useShareModal();
 
   return (
-    <div className="relative flex-1">
+    <div className="relative flex-1 pb-32">
       <div
         className={classNames({
           "blur-[7.5px] opacity-50 pointer-events-none": isOpen,

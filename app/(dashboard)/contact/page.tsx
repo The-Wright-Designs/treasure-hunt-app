@@ -46,6 +46,7 @@ const ContactPage = () => {
                     alt={contact.label}
                     fill
                     className="object-contain"
+                    sizes="128px"
                   />
                 </div>
               )}
