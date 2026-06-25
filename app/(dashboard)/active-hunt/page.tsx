@@ -14,9 +14,9 @@ const {
 
 const ActiveHuntPage = () => {
   return (
-    <div className="flex flex-col gap-10 px-5 py-10">
+    <div className="flex flex-col gap-10 px-5 pt-10">
       <div className="flex gap-[10px] items-center">
-        <MapPinned size={32} color="#1D1D1D" />
+        <MapPinned size={32} color="#1D1D1D" className="shrink-0" />
         <h1>Active Hunt</h1>
       </div>
 

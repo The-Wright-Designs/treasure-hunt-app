@@ -4,10 +4,11 @@ import Link from "next/link";
 import HeaderMenu from "./header-menu";
 import Image from "next/image";
 import { Menu, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useHeaderMenu } from "@/_context/header-menu-context";
 
 const HeaderComponent = () => {
-  const [isOpen, setIsOpen] = useState(false);
+  const { isOpen, open, close } = useHeaderMenu();
 
   useEffect(() => {
     if (isOpen) {
@@ -34,7 +35,7 @@ const HeaderComponent = () => {
           <h3>Treasure Hunt App</h3>
         </Link>
         <button
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={() => (isOpen ? close() : open())}
           className="ease-in-out duration-300 -m-2 p-2 desktop:hover:cursor-pointer"
           aria-label={isOpen ? "Close menu" : "Open menu"}
         >
@@ -45,7 +46,7 @@ const HeaderComponent = () => {
           )}
         </button>
       </div>
-      <HeaderMenu isOpen={isOpen} setIsOpen={setIsOpen} />
+      <HeaderMenu isOpen={isOpen} setIsOpen={(val) => (val ? open() : close())} />
     </header>
   );
 };

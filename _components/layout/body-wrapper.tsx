@@ -27,7 +27,7 @@ export default function BodyWrapper({
           onClick={close}
         >
           <div onClick={(e) => e.stopPropagation()}>
-            <ShareModal cssClasses="w-[308px]" />
+            <ShareModal cssClasses="w-[260px]" />
           </div>
         </div>
       )}

@@ -83,8 +83,8 @@ html {
 /* spinner styles */
 
 .spinner {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   position: relative;
 }
 
@@ -98,7 +98,7 @@ html {
   top: 0;
   left: 0;
   border: 3px solid transparent;
-  border-top-color: #4B9DA9;
+  border-top-color: #E37434;
   animation: spin 1s linear infinite;
 }
 

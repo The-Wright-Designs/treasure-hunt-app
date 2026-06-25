@@ -30,7 +30,7 @@ const HuntCard = ({
         cssClasses,
       )}
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <div className="flex gap-2 items-center">
           <MapPinned size={20} color="white" />
           <h3 className="text-white">{heading}</h3>
@@ -39,17 +39,17 @@ const HuntCard = ({
       </div>
 
       <div className="flex flex-col gap-1">
-        <div className="flex gap-[10px]">
-          <p className="text-white w-[140px] shrink-0">Deadline:</p>
-          <p className="text-white flex-1">{formatDeadlineLabel(deadline)}</p>
+        <div className="grid grid-cols-[1.25fr_1fr] gap-3">
+          <p className="text-white">Deadline:</p>
+          <p className="text-white">{formatDeadlineLabel(deadline)}</p>
         </div>
-        <div className="flex gap-[10px]">
-          <p className="text-white w-[140px] shrink-0">Prize:</p>
-          <p className="text-white flex-1">R{prizeAmount}</p>
+        <div className="grid grid-cols-[1.25fr_1fr] gap-3">
+          <p className="text-white">Prize:</p>
+          <p className="text-white">R{prizeAmount}</p>
         </div>
-        <div className="flex gap-[10px]">
-          <p className="text-white w-[140px] shrink-0">Hunters on the case:</p>
-          <p className="text-white flex-1">{activeHunters}</p>
+        <div className="grid grid-cols-[1.25fr_1fr] gap-3">
+          <p className="text-white">Hunters on the case:</p>
+          <p className="text-white">{activeHunters}</p>
         </div>
       </div>
 

@@ -4,9 +4,9 @@ import ButtonType from "@/_components/ui/buttons/button-type";
 
 const ProfilePage = () => {
   return (
-    <div className="flex flex-col gap-10 px-5 py-10">
+    <div className="flex flex-col gap-10 px-5 pt-10">
       <div className="flex gap-[10px] items-center">
-        <CircleUser size={32} color="#1D1D1D" />
+        <CircleUser size={32} color="#1D1D1D" className="shrink-0" />
         <h1>Profile</h1>
       </div>
 

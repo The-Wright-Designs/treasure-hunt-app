@@ -24,7 +24,15 @@ const ButtonType = ({
       type={type}
       onClick={onClick}
       aria-label={ariaLabel}
-      className={buttonStyles(cssClasses, disabled, pending, colorTeal, colorOrange, colorGrey, secondary)}
+      className={buttonStyles(
+        cssClasses,
+        disabled,
+        pending,
+        colorTeal,
+        colorOrange,
+        colorGrey,
+        secondary,
+      )}
       disabled={disabled || pending}
       title={title}
     >

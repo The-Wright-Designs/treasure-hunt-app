@@ -15,6 +15,7 @@ interface Props {
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   error?: string;
   disabled?: boolean;
+  autoComplete?: string;
 }
 
 const TextInput = ({
@@ -28,6 +29,7 @@ const TextInput = ({
   onChange,
   error,
   disabled = false,
+  autoComplete,
 }: Props) => {
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = type === "password";
@@ -48,6 +50,7 @@ const TextInput = ({
           value={value}
           onChange={onChange}
           disabled={disabled}
+          autoComplete={autoComplete}
           className={classNames(
             "bg-white border rounded-[6px] px-3 py-2 w-full placeholder:text-black/25 outline-none",
             error ? "border-error" : "border-black/50",

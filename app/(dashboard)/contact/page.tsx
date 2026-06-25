@@ -7,16 +7,16 @@ const { contacts } = data;
 
 const ContactPage = () => {
   return (
-    <div className="flex flex-col gap-10 px-5 py-10">
+    <div className="flex flex-col gap-10 px-5 pt-10">
       <div className="flex gap-[10px] items-center">
-        <Phone size={32} color="#1D1D1D" />
+        <Phone size={32} color="#1D1D1D" className="shrink-0" />
         <h1>Contact</h1>
       </div>
 
       <div className="flex flex-col gap-5">
         {contacts.map((contact, index) => (
           <div key={index} className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-3">
               <div className="flex flex-col gap-3">
                 <p className="font-bold">{contact.label}</p>
                 <Link

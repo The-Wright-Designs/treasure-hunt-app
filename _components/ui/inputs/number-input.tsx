@@ -12,6 +12,7 @@ interface Props {
   min?: number;
   max?: number;
   step?: number;
+  phone?: boolean;
 }
 
 const NumberInput = ({
@@ -26,6 +27,7 @@ const NumberInput = ({
   min,
   max,
   step,
+  phone = false,
 }: Props) => {
   return (
     <div className={classNames("flex flex-col gap-[6px] w-full", cssClasses)}>
@@ -36,14 +38,16 @@ const NumberInput = ({
       <input
         id={name}
         name={name}
-        type="number"
+        type={phone ? "tel" : "number"}
+        inputMode={phone ? "tel" : "numeric"}
+        autoComplete={phone ? "tel" : undefined}
         placeholder={placeholder}
         required={required}
         value={value}
         onChange={onChange}
-        min={min}
-        max={max}
-        step={step}
+        min={phone ? undefined : min}
+        max={phone ? undefined : max}
+        step={phone ? undefined : step}
         className={classNames(
           "bg-white border rounded-[6px] px-3 py-2 w-full placeholder:text-black/25 outline-none",
           error ? "border-error" : "border-black/50",

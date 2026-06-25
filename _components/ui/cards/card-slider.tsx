@@ -20,10 +20,11 @@ const CardSlider = ({ slides, cssClasses }: CardSliderProps) => {
         autoplay={{ delay: 8000, disableOnInteraction: true }}
         loop={true}
         spaceBetween={20}
+        className="bg-white rounded-[6px]"
       >
         {slides.map((slide, index) => (
-          <SwiperSlide key={index} className="bg-white rounded-[6px] p-3">
-            <p className="h-[120px]">{slide}</p>
+          <SwiperSlide key={index}>
+            <p className="h-full p-3 pb-10">{slide}</p>
           </SwiperSlide>
         ))}
       </Swiper>

@@ -6,10 +6,10 @@ const { announcements } = data;
 
 const AnnouncementsPage = () => {
   return (
-    <div className="flex flex-col gap-10 px-5 py-10">
+    <div className="flex flex-col gap-10 px-5 pt-10">
       <div className="flex gap-[10px] items-center">
-        <Megaphone size={32} color="#1D1D1D" />
-        <h1>Announcements</h1>
+        <Megaphone size={32} color="#1D1D1D" className="shrink-0" />
+        <h1 className="text-[28px] min-[375px]:text-heading">Announcements</h1>
       </div>
 
       <div className="flex flex-col gap-5">

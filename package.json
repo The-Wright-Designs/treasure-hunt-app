@@ -11,6 +11,8 @@
   "dependencies": {
     "@react-google-maps/api": "^2.20.8",
     "classnames": "latest",
+    "firebase": "^12.15.0",
+    "firebase-admin": "^14.0.0",
     "lucide-react": "latest",
     "next": "16.2.6",
     "nodemailer": "latest",

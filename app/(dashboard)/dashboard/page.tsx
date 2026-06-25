@@ -7,7 +7,7 @@ const { deadline: deadlineIso, prizeAmount, activeHunters } = activeHunt;
 
 const Dashboard = () => {
   return (
-    <div className="flex flex-col gap-10 px-5 py-10">
+    <div className="flex flex-col gap-10 px-5 pt-10">
       <h2>Dashboard</h2>
       <main className="flex flex-col gap-10">
         <HuntCard
