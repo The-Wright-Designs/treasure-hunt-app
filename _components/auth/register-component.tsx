@@ -70,6 +70,7 @@ const RegisterComponent = () => {
                 autoComplete="name"
                 value={values.name}
                 onChange={handleChange}
+                disabled={registering}
               />
               <NumberInput
                 label="Phone number"
@@ -79,6 +80,7 @@ const RegisterComponent = () => {
                 phone
                 value={values.phone}
                 onChange={handleChange}
+                disabled={registering}
               />
               <TextInput
                 label="Email"
@@ -89,6 +91,7 @@ const RegisterComponent = () => {
                 autoComplete="email"
                 value={values.email}
                 onChange={handleChange}
+                disabled={registering}
               />
             </>
           ) : (
@@ -102,6 +105,7 @@ const RegisterComponent = () => {
                 autoComplete="new-password"
                 value={values.password}
                 onChange={handleChange}
+                disabled={registering}
               />
               <div className="flex flex-col gap-2">
                 {[
@@ -146,6 +150,7 @@ const RegisterComponent = () => {
                 value={values.confirmPassword}
                 onChange={handleChange}
                 error={passwordError}
+                disabled={registering}
               />
             </>
           )}

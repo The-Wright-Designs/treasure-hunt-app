@@ -6,11 +6,14 @@ import LoginComponent from "@/_components/auth/login-component";
 const LoginPage = async () => {
   const session = (await cookies()).get("session")?.value;
   if (session) {
+    let sessionValid = false;
     try {
       await adminAuth.verifySessionCookie(session, true);
-      redirect("/dashboard");
-    } catch {
+      sessionValid = true;
+    } catch (error) {
+      console.error("Session verification failed:", error);
     }
+    if (sessionValid) redirect("/dashboard");
   }
 
   return (

@@ -9,6 +9,7 @@ interface Props {
   value?: string | number;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   error?: string;
+  disabled?: boolean;
   min?: number;
   max?: number;
   step?: number;
@@ -24,6 +25,7 @@ const NumberInput = ({
   value,
   onChange,
   error,
+  disabled = false,
   min,
   max,
   step,
@@ -45,12 +47,14 @@ const NumberInput = ({
         required={required}
         value={value}
         onChange={onChange}
+        disabled={disabled}
         min={phone ? undefined : min}
         max={phone ? undefined : max}
         step={phone ? undefined : step}
         className={classNames(
           "bg-white border rounded-[6px] px-3 py-2 w-full placeholder:text-black/25 outline-none",
           error ? "border-error" : "border-black/50",
+          disabled && "opacity-50",
         )}
         style={error ? { borderColor: "#DC2626" } : undefined}
       />

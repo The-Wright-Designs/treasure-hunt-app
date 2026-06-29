@@ -26,5 +26,14 @@ export async function createSession(idToken: string) {
 
 export async function deleteSession() {
   const cookieStore = await cookies();
+  const session = cookieStore.get("session")?.value;
+  if (session) {
+    try {
+      const decoded = await adminAuth.verifySessionCookie(session);
+      await adminAuth.revokeRefreshTokens(decoded.sub);
+    } catch (error) {
+      console.error("Token revocation on logout failed:", error);
+    }
+  }
   cookieStore.delete("session");
 }

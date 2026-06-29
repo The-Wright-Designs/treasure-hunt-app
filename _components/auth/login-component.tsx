@@ -24,6 +24,7 @@ const LoginComponent = () => {
   const [resetEmail, setResetEmail] = useState("");
   const [resetError, setResetError] = useState("");
   const [resetSuccess, setResetSuccess] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setValues((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -31,6 +32,7 @@ const LoginComponent = () => {
 
   const handleSubmit = async (formData: FormData) => {
     setError("");
+    setSubmitting(true);
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
     try {
@@ -61,12 +63,14 @@ const LoginComponent = () => {
       } else {
         setError("Something went wrong. Please try again.");
       }
+      setSubmitting(false);
     }
   };
 
   const handleResetSubmit = async (formData: FormData) => {
     setResetError("");
     setResetSuccess(false);
+    setSubmitting(true);
     const email = formData.get("resetEmail") as string;
     try {
       if (executeRecaptcha) {
@@ -86,6 +90,7 @@ const LoginComponent = () => {
       } else {
         setResetError("Something went wrong. Please try again.");
       }
+      setSubmitting(false);
     }
   };
 
@@ -111,6 +116,7 @@ const LoginComponent = () => {
                 autoComplete="email"
                 value={values.email}
                 onChange={handleChange}
+                disabled={submitting}
               />
               <TextInput
                 label="Password"
@@ -120,6 +126,7 @@ const LoginComponent = () => {
                 autoComplete="current-password"
                 value={values.password}
                 onChange={handleChange}
+                disabled={submitting}
               />
             </div>
             <button
@@ -201,6 +208,7 @@ const LoginComponent = () => {
                 autoComplete="email"
                 value={resetEmail}
                 onChange={(e) => setResetEmail(e.target.value)}
+                disabled={submitting}
               />
               <ButtonType type="submit" cssClasses="w-full">
                 Send reset link
