@@ -1,8 +1,11 @@
 import { CircleUser } from "lucide-react";
-import TextInput from "@/_components/ui/inputs/text-input";
-import ButtonType from "@/_components/ui/buttons/button-type";
+import DeleteAccount from "@/_components/ui/delete-account";
+import ProfileForm from "@/_components/ui/profile-form";
+import { getProfile } from "@/_actions/profile-actions";
 
-const ProfilePage = () => {
+const ProfilePage = async () => {
+  const profile = await getProfile();
+
   return (
     <div className="flex flex-col gap-10 px-5 pt-10">
       <div className="flex gap-[10px] items-center">
@@ -11,25 +14,17 @@ const ProfilePage = () => {
       </div>
 
       <div className="flex flex-col gap-10">
-        <div className="flex flex-col gap-5">
-          <TextInput label="Name" name="name" value="John Doe" disabled />
-          <TextInput label="Phone number" name="phone" value="08212345678" />
-          <TextInput
-            label="Email"
-            name="email"
-            type="email"
-            value="john@doe.co.za"
-          />
-          <ButtonType colorGrey cssClasses="mt-5">
-            Save
-          </ButtonType>
-        </div>
+        <ProfileForm
+          name={profile?.name ?? ""}
+          phone={profile?.phone ?? ""}
+          email={profile?.email ?? ""}
+        />
 
         <hr className="border-black/25" />
 
         <div className="flex flex-col gap-5">
           <h2>Account</h2>
-          <ButtonType colorOrange>Delete account</ButtonType>
+          <DeleteAccount />
         </div>
       </div>
     </div>

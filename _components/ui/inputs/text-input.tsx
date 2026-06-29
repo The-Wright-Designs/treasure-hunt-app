@@ -12,6 +12,7 @@ interface Props {
   required?: boolean;
   cssClasses?: string;
   value?: string;
+  defaultValue?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   error?: string;
   disabled?: boolean;
@@ -26,6 +27,7 @@ const TextInput = ({
   required = false,
   cssClasses,
   value,
+  defaultValue,
   onChange,
   error,
   disabled = false,
@@ -48,6 +50,7 @@ const TextInput = ({
           placeholder={placeholder}
           required={required}
           value={value}
+          defaultValue={defaultValue}
           onChange={onChange}
           disabled={disabled}
           autoComplete={autoComplete}

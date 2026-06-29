@@ -8,7 +8,7 @@ const LoginPage = async () => {
   if (session) {
     let sessionValid = false;
     try {
-      await adminAuth.verifySessionCookie(session, true);
+      await adminAuth.verifySessionCookie(session);
       sessionValid = true;
     } catch (error) {
       console.error("Session verification failed:", error);

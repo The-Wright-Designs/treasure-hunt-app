@@ -1,5 +1,6 @@
 "use client";
 
+import classNames from "classnames";
 import { useFormStatus } from "react-dom";
 import { ButtonProps } from "@/_types/button-types";
 import { buttonStyles } from "@/_styles/button-styles";
@@ -38,7 +39,11 @@ const ButtonType = ({
     >
       {pending && type === "submit" ? (
         <div className="flex items-center justify-center">
-          <div className="spinner"></div>
+          <div
+            className={classNames("spinner", {
+              "spinner-black": colorOrange || colorGrey || colorTeal,
+            })}
+          />
         </div>
       ) : (
         <>{children}</>

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 import {
   signInWithEmailAndPassword,
@@ -16,7 +15,6 @@ import ButtonType from "@/_components/ui/buttons/button-type";
 import logo from "@/public/logo/treasure-hunt-app-logo.png";
 
 const LoginComponent = () => {
-  const router = useRouter();
   const { executeRecaptcha } = useGoogleReCaptcha();
   const [error, setError] = useState("");
   const [values, setValues] = useState({ email: "", password: "" });
@@ -47,7 +45,7 @@ const LoginComponent = () => {
       );
       const idToken = await credential.user.getIdToken();
       await createSession(idToken);
-      router.push("/dashboard");
+      window.location.href = "/dashboard";
     } catch (err) {
       const message = err instanceof Error ? err.message : "";
       if (message.includes("reCAPTCHA")) {

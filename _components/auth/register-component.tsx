@@ -10,7 +10,8 @@ import { Check, X } from "lucide-react";
 import { auth } from "@/_lib/firebase-client";
 import { createSession, verifyAuthRecaptcha } from "@/_actions/auth-actions";
 import TextInput from "@/_components/ui/inputs/text-input";
-import NumberInput from "@/_components/ui/inputs/number-input";
+import PhoneInput from "@/_components/ui/inputs/phone-input";
+import EmailInput from "@/_components/ui/inputs/email-input";
 import ButtonType from "@/_components/ui/buttons/button-type";
 import logo from "@/public/logo/treasure-hunt-app-logo.png";
 
@@ -41,7 +42,7 @@ const RegisterComponent = () => {
 
   const step1Valid =
     values.name.trim().length >= 2 &&
-    /^0[0-9]{9,11}$/.test(values.phone) &&
+    /^(\+27|0)[6-8][0-9]{8}$/.test(values.phone) &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,23 +73,20 @@ const RegisterComponent = () => {
                 onChange={handleChange}
                 disabled={registering}
               />
-              <NumberInput
+              <PhoneInput
                 label="Phone number"
                 name="phone"
                 placeholder="Phone number"
                 required
-                phone
                 value={values.phone}
                 onChange={handleChange}
                 disabled={registering}
               />
-              <TextInput
+              <EmailInput
                 label="Email"
                 name="email"
-                type="email"
                 placeholder="Email"
                 required
-                autoComplete="email"
                 value={values.email}
                 onChange={handleChange}
                 disabled={registering}
@@ -198,8 +196,8 @@ const RegisterComponent = () => {
                   await updateProfile(credential.user, {
                     displayName: values.name,
                   });
-                  const idToken = await credential.user.getIdToken();
-                  await createSession(idToken);
+                  const idToken = await credential.user.getIdToken(true);
+                  await createSession(idToken, values.phone);
                   router.push("/dashboard");
                 } catch (err) {
                   const message = err instanceof Error ? err.message : "";
@@ -216,6 +214,7 @@ const RegisterComponent = () => {
                   } else {
                     setError("Something went wrong. Please try again.");
                   }
+                  setValues((prev) => ({ ...prev, password: "", confirmPassword: "" }));
                   setRegistering(false);
                 }
               }}
