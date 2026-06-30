@@ -1,23 +1,25 @@
 import InfoCard from "@/_components/ui/cards/info-card";
 import HuntCard from "@/_components/ui/cards/active-hunt/hunt-card";
 import generalData from "@/_data/general-data.json";
+import { getActiveHunt } from "@/_actions/active-hunt-actions";
 
-const { activeHunt } = generalData;
-const { deadline: deadlineIso, prizeAmount, activeHunters } = activeHunt;
+const Dashboard = async () => {
+  const activeHunt = await getActiveHunt();
 
-const Dashboard = () => {
   return (
     <div className="flex flex-col gap-10 px-5 pt-10">
       <h2>Dashboard</h2>
       <main className="flex flex-col gap-10">
-        <HuntCard
-          heading="Active hunt"
-          buttonLink="/active-hunt"
-          buttonText="Join the hunt"
-          deadline={deadlineIso}
-          prizeAmount={prizeAmount}
-          activeHunters={activeHunters}
-        />
+        {activeHunt && (
+          <HuntCard
+            heading="Active hunt"
+            buttonLink="/active-hunt"
+            buttonText="Join the hunt"
+            deadline={activeHunt.deadline}
+            prizeAmount={activeHunt.prizeAmount}
+            activeHunters={activeHunt.activeHunters}
+          />
+        )}
         <InfoCard
           heading="Announcements"
           icon="megaphone"

@@ -2,7 +2,7 @@ import classNames from "classnames";
 import { Trophy } from "lucide-react";
 
 interface PastHuntCardProps {
-  date: string;
+  deadline: string;
   completed: boolean;
   noOfHunters: number;
   winner?: boolean;
@@ -23,7 +23,7 @@ function formatPastHuntDate(isoString: string): string {
 }
 
 const PastHuntCard = ({
-  date,
+  deadline,
   completed,
   noOfHunters,
   winner = false,
@@ -33,13 +33,14 @@ const PastHuntCard = ({
     <div
       className={classNames(
         "rounded-[6px] shadow-[0px_4px_4px_0px_rgba(0,0,0,0.1)] flex flex-col gap-5 p-5 overflow-hidden",
-        winner ? "bg-orange" : "bg-teal",
+        winner && completed ? "bg-orange" : "bg-teal",
+        !completed && "opacity-60",
         cssClasses,
       )}
     >
       <div className="flex items-center justify-between gap-[10px]">
-        <h3 className="text-white">{formatPastHuntDate(date)}</h3>
-        {winner && (
+        <h3 className="text-white">{formatPastHuntDate(deadline)}</h3>
+        {winner && completed && (
           <div className="bg-teal rounded-[6px] flex gap-[10px] items-center justify-center px-2 py-[6px]">
             <Trophy size={20} color="#FFFFFF" />
             <p className="text-white">Winner</p>

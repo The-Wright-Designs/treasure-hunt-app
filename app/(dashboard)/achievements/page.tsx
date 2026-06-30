@@ -1,10 +1,10 @@
 import { Trophy } from "lucide-react";
 import PastHuntCard from "@/_components/ui/cards/achievements/past-hunt-card";
-import data from "@/_data/general-data.json";
+import { getPastHunts } from "@/_actions/achievements-actions";
 
-const { pastHunts } = data;
+const AchievementsPage = async () => {
+  const pastHunts = await getPastHunts();
 
-const AchievementsPage = () => {
   return (
     <div className="flex flex-col gap-10 px-5 pt-10">
       <div className="flex gap-[10px] items-center">
@@ -13,15 +13,19 @@ const AchievementsPage = () => {
       </div>
 
       <div className="flex flex-col gap-5">
-        {pastHunts.map((hunt) => (
-          <PastHuntCard
-            key={hunt.date}
-            date={hunt.date}
-            completed={hunt.completed}
-            noOfHunters={hunt.noOfHunters}
-            winner={"winner" in hunt && hunt.winner}
-          />
-        ))}
+        {!pastHunts || pastHunts.length === 0 ? (
+          <p>No past hunts yet.</p>
+        ) : (
+          pastHunts.map((hunt) => (
+            <PastHuntCard
+              key={hunt.deadline}
+              deadline={hunt.deadline}
+              completed={hunt.completed}
+              noOfHunters={hunt.noOfHunters}
+              winner={hunt.winner}
+            />
+          ))
+        )}
       </div>
     </div>
   );

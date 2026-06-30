@@ -6,14 +6,6 @@
     "If something or someone makes you feel uncomfortable while you're out on the hunt, don't ignore that feeling. Move to a public area, contact a trusted adult, and if you ever feel like you're in danger, call 10111 immediately.",
     "Before you head out to search for the hidden item, make sure a parent or guardian knows exactly where you're going and when you plan to be back. A quick message or phone call goes a long way in keeping everyone in the loop and keeping you safe."
   ],
-  "activeHunt": {
-    "deadline": "2026-08-14T10:00:00+02:00",
-    "prizeAmount": 500,
-    "activeHunters": 38,
-    "mapLongitude": 23.37803971900292,
-    "mapLatitude": -34.06090378023144,
-    "mapZoom": 15
-  },
   "announcements": [
     {
       "heading": "Suspicious Vehicle in the Area",
@@ -58,29 +50,6 @@
       "phone": "0831234567",
       "display": "083 123 4567",
       "whatsapp": "270831234567"
-    }
-  ],
-  "pastHunts": [
-    {
-      "date": "2026-08-07T10:00:00+02:00",
-      "completed": false,
-      "noOfHunters": 14
-    },
-    {
-      "date": "2026-07-31T10:00:00+02:00",
-      "completed": true,
-      "noOfHunters": 18
-    },
-    {
-      "date": "2026-07-24T10:00:00+02:00",
-      "completed": true,
-      "noOfHunters": 11,
-      "winner": true
-    },
-    {
-      "date": "2026-07-17T10:00:00+02:00",
-      "completed": false,
-      "noOfHunters": 22
     }
   ]
 }
