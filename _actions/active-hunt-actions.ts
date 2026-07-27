@@ -13,6 +13,7 @@ export async function getActiveHunt(): Promise<ActiveHuntView | null> {
   const snapshot = await adminDb
     .collection("hunts")
     .where("ongoing", "==", true)
+    .orderBy("startsAt", "desc")
     .limit(1)
     .get();
 
@@ -24,6 +25,7 @@ export async function getActiveHunt(): Promise<ActiveHuntView | null> {
     deadline: hunt.deadline,
     prizeAmount: hunt.prizeAmount,
     activeHunters: hunt.participants.length,
+    clues: hunt.clues ?? [],
     mapLatitude: hunt.mapLatitude,
     mapLongitude: hunt.mapLongitude,
     mapZoom: hunt.mapZoom,

@@ -32,50 +32,18 @@ const ActiveHuntPage = async () => {
             activeHunters={activeHunt.activeHunters}
           />
 
-          <div className="flex flex-col gap-5">
-            <h3>Clues</h3>
-            <ol className="list-decimal flex flex-col gap-1 pl-5">
-              <li>
-                <p>
-                  Start at the most popular swimming spot in the area. It&apos;s
-                  the place locals head to on a hot day when they want to cool
-                  off. Get yourself there and take a good look around.
-                </p>
-              </li>
-              <li>
-                <p>
-                  Face away from the water and find the nearest open green
-                  space. There&apos;s a park close by where you&apos;ll spot
-                  braai stands and benches scattered around. Head there and find
-                  the oldest, biggest tree you can see.
-                </p>
-              </li>
-              <li>
-                <p>
-                  Leave the park and follow your nose. There&apos;s a café
-                  nearby that the locals swear by for their morning coffee. Find
-                  it, and once you&apos;re standing outside, look around
-                  carefully — you&apos;re in the right area.
-                </p>
-              </li>
-              <li>
-                <p>
-                  Head down the road to your left and keep your eyes on the
-                  walls around you. Somewhere nearby there&apos;s a spot famous
-                  for its street art. When you find it, slow down and start
-                  looking low rather than high.
-                </p>
-              </li>
-              <li>
-                <p>
-                  You&apos;re close now. Find the bench that has the best view
-                  of the ocean. Get down low, check your surroundings carefully,
-                  and you&apos;ll find what you&apos;ve been looking for. Good
-                  luck — you&apos;ve got this! 🏆
-                </p>
-              </li>
-            </ol>
-          </div>
+          {activeHunt.clues.length > 0 && (
+            <div className="flex flex-col gap-5">
+              <h3>Clues</h3>
+              <ol className="list-decimal flex flex-col gap-1 pl-5">
+                {activeHunt.clues.map((clue, index) => (
+                  <li key={index}>
+                    <p>{clue}</p>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
 
           <div className="flex flex-col gap-5">
             <h3>Map</h3>

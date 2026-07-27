@@ -7,7 +7,7 @@ import { Menu, X } from "lucide-react";
 import { useEffect } from "react";
 import { useHeaderMenu } from "@/_context/header-menu-context";
 
-const HeaderComponent = () => {
+const HeaderComponent = ({ isAdmin = false }: { isAdmin?: boolean }) => {
   const { isOpen, open, close } = useHeaderMenu();
 
   useEffect(() => {
@@ -46,7 +46,11 @@ const HeaderComponent = () => {
           )}
         </button>
       </div>
-      <HeaderMenu isOpen={isOpen} setIsOpen={(val) => (val ? open() : close())} />
+      <HeaderMenu
+        isAdmin={isAdmin}
+        isOpen={isOpen}
+        setIsOpen={(val) => (val ? open() : close())}
+      />
     </header>
   );
 };

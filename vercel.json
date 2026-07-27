@@ -1,4 +1,14 @@
 {
+  "crons": [
+    {
+      "path": "/api/cron/close-hunts",
+      "schedule": "0 15 * * 0"
+    },
+    {
+      "path": "/api/cron/open-hunts",
+      "schedule": "0 5 * * 1"
+    }
+  ],
   "headers": [
     {
       "source": "/_next/static/(.*)",

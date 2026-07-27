@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   Phone,
   LogOut,
+  ShieldPlus,
   LucideProps,
 } from "lucide-react";
 import { signOut } from "firebase/auth";
@@ -31,12 +32,14 @@ interface MobileHeaderProps {
   cssClasses?: string;
   isOpen: boolean;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
+  isAdmin?: boolean;
 }
 
 export default function HeaderMenu({
   cssClasses,
   isOpen,
   setIsOpen,
+  isAdmin = false,
 }: MobileHeaderProps) {
   const router = useRouter();
 
@@ -77,6 +80,18 @@ export default function HeaderMenu({
                 </li>
               );
             })}
+            {isAdmin && (
+              <li>
+                <Link
+                  href="/admin"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-2"
+                >
+                  <ShieldPlus size={20} color="#1D1D1D" />
+                  <span className="text-subheading text-black">Admin</span>
+                </Link>
+              </li>
+            )}
             <li>
               <button
                 onClick={handleLogout}
