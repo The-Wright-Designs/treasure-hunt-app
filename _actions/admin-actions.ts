@@ -9,6 +9,18 @@ import {
   ActiveHuntAdminView,
 } from "@/_types/past-hunt-types";
 
+function getSastDay(value: string): number {
+  const [year, month, date] = value.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, date)).getUTCDay();
+}
+
+function addDays(value: string, days: number): string {
+  const [year, month, date] = value.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, date + days))
+    .toISOString()
+    .slice(0, 10);
+}
+
 export async function isAdmin(): Promise<boolean> {
   const session = (await cookies()).get("session")?.value;
   if (!session) return false;
@@ -42,6 +54,10 @@ export async function getQueuedHunts(): Promise<QueuedHuntView[]> {
         clueCount: hunt.clues?.length ?? 0,
         mapLatitude: hunt.mapLatitude,
         mapLongitude: hunt.mapLongitude,
+        mapZoom: hunt.mapZoom,
+        circleLatitude: hunt.circleLatitude,
+        circleLongitude: hunt.circleLongitude,
+        circleRadius: hunt.circleRadius,
         locationNote: hunt.locationNote,
       };
     });
@@ -72,6 +88,10 @@ export async function getActiveHuntAdmin(): Promise<ActiveHuntAdminView | null> 
     completedCount: hunt.completedBy?.length ?? 0,
     mapLatitude: hunt.mapLatitude,
     mapLongitude: hunt.mapLongitude,
+    mapZoom: hunt.mapZoom,
+    circleLatitude: hunt.circleLatitude,
+    circleLongitude: hunt.circleLongitude,
+    circleRadius: hunt.circleRadius,
     locationNote: hunt.locationNote,
   };
 }
@@ -85,31 +105,31 @@ export async function createHunt(
   }
 
   const startsAtInput = formData.get("startsAt")?.toString() ?? "";
-  const deadlineInput = formData.get("deadline")?.toString() ?? "";
 
-  if (!startsAtInput || !deadlineInput) {
-    return { success: false, error: "Start date and deadline are both required." };
+  if (!startsAtInput) {
+    return { success: false, error: "Start date is required." };
   }
 
-  const startsAt = new Date(startsAtInput);
-  const deadline = new Date(deadlineInput);
+  const startsAt = new Date(`${startsAtInput}T07:00:00+02:00`);
 
-  if (isNaN(startsAt.getTime()) || isNaN(deadline.getTime())) {
-    return { success: false, error: "Start date or deadline is not a valid date." };
+  if (isNaN(startsAt.getTime())) {
+    return { success: false, error: "Start date is not a valid date." };
   }
 
-  if (deadline <= startsAt) {
-    return { success: false, error: "The deadline must be after the start date." };
+  if (getSastDay(startsAtInput) !== 1) {
+    return { success: false, error: "The start date must be a Monday." };
   }
 
-  const prizeAmount = Number(formData.get("prizeAmount"));
+  if (startsAt.getTime() <= Date.now()) {
+    return { success: false, error: "The start date must be in the future." };
+  }
+
+  const deadline = new Date(`${addDays(startsAtInput, 6)}T17:00:00+02:00`);
+
+  const prizeAmount = 500;
   const mapLatitude = Number(formData.get("mapLatitude"));
   const mapLongitude = Number(formData.get("mapLongitude"));
   const mapZoom = Number(formData.get("mapZoom"));
-
-  if (!Number.isFinite(prizeAmount) || prizeAmount <= 0) {
-    return { success: false, error: "Prize amount must be greater than 0." };
-  }
 
   if (!Number.isFinite(mapLatitude) || mapLatitude < -90 || mapLatitude > 90) {
     return { success: false, error: "Latitude must be between -90 and 90." };
@@ -119,8 +139,57 @@ export async function createHunt(
     return { success: false, error: "Longitude must be between -180 and 180." };
   }
 
-  if (!Number.isFinite(mapZoom) || mapZoom < 1 || mapZoom > 22) {
-    return { success: false, error: "Zoom must be between 1 and 22." };
+  if (![15, 15.5, 16].includes(mapZoom)) {
+    return { success: false, error: "Please choose a valid map zoom." };
+  }
+
+  const circleLatitudeInput =
+    formData.get("circleLatitude")?.toString().trim() ?? "";
+  const circleLongitudeInput =
+    formData.get("circleLongitude")?.toString().trim() ?? "";
+  const circleRadiusInput =
+    formData.get("circleRadius")?.toString().trim() ?? "";
+
+  const circleLatitude = circleLatitudeInput
+    ? Number(circleLatitudeInput)
+    : undefined;
+  const circleLongitude = circleLongitudeInput
+    ? Number(circleLongitudeInput)
+    : undefined;
+  const circleRadius = circleRadiusInput ? Number(circleRadiusInput) : undefined;
+
+  if (
+    circleLatitude !== undefined &&
+    (!Number.isFinite(circleLatitude) ||
+      circleLatitude < -90 ||
+      circleLatitude > 90)
+  ) {
+    return {
+      success: false,
+      error: "Circle latitude must be between -90 and 90.",
+    };
+  }
+
+  if (
+    circleLongitude !== undefined &&
+    (!Number.isFinite(circleLongitude) ||
+      circleLongitude < -180 ||
+      circleLongitude > 180)
+  ) {
+    return {
+      success: false,
+      error: "Circle longitude must be between -180 and 180.",
+    };
+  }
+
+  if (
+    circleRadius !== undefined &&
+    (!Number.isFinite(circleRadius) || circleRadius < 1 || circleRadius > 5000)
+  ) {
+    return {
+      success: false,
+      error: "Circle radius must be between 1 and 5000 metres.",
+    };
   }
 
   const locationNote = formData.get("locationNote")?.toString().trim() ?? "";
@@ -144,6 +213,9 @@ export async function createHunt(
       mapLatitude,
       mapLongitude,
       mapZoom,
+      ...(circleLatitude !== undefined ? { circleLatitude } : {}),
+      ...(circleLongitude !== undefined ? { circleLongitude } : {}),
+      ...(circleRadius !== undefined ? { circleRadius } : {}),
       ...(locationNote ? { locationNote } : {}),
       participants: [],
       completedBy: [],

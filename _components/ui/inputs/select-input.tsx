@@ -1,35 +1,34 @@
 import classNames from "classnames";
 
+interface Option {
+  label: string;
+  value: string;
+}
+
 interface Props {
   label: string;
   name: string;
-  placeholder?: string;
+  options: Option[];
   required?: boolean;
   cssClasses?: string;
-  value?: string | number;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  value?: string;
+  defaultValue?: string;
+  onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   error?: string;
   disabled?: boolean;
-  min?: number;
-  max?: number;
-  step?: number | "any";
-  phone?: boolean;
 }
 
-const NumberInput = ({
+const SelectInput = ({
   label,
   name,
-  placeholder,
+  options,
   required = false,
   cssClasses,
   value,
+  defaultValue,
   onChange,
   error,
   disabled = false,
-  min,
-  max,
-  step,
-  phone = false,
 }: Props) => {
   return (
     <div className={classNames("flex flex-col gap-[6px] w-full", cssClasses)}>
@@ -37,27 +36,27 @@ const NumberInput = ({
         {label}
         {required && " *"}
       </label>
-      <input
+      <select
         id={name}
         name={name}
-        type={phone ? "tel" : "number"}
-        inputMode={phone ? "tel" : "decimal"}
-        autoComplete={phone ? "tel" : undefined}
-        placeholder={placeholder}
         required={required}
         value={value}
+        defaultValue={defaultValue}
         onChange={onChange}
         disabled={disabled}
-        min={phone ? undefined : min}
-        max={phone ? undefined : max}
-        step={phone ? undefined : step}
         className={classNames(
-          "bg-white border rounded-[6px] px-3 py-2 w-full placeholder:text-black/25 outline-none",
+          "bg-white border rounded-[6px] px-3 py-2 w-full outline-none desktop:hover:cursor-pointer",
           error ? "border-error" : "border-black/50",
           disabled && "opacity-50",
         )}
         style={error ? { borderColor: "#DC2626" } : undefined}
-      />
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
       {error && (
         <p className="text-[12px]" style={{ color: "#DC2626" }}>
           {error}
@@ -67,4 +66,4 @@ const NumberInput = ({
   );
 };
 
-export default NumberInput;
+export default SelectInput;

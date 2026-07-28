@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { ActiveHuntAdminView } from "@/_types/past-hunt-types";
 import { formatDeadlineLabel } from "@/_lib/utils/format-deadline";
+import { getFirestoreConsoleUrl } from "@/_lib/utils/firestore-console-url";
 
 interface Props {
   hunt: ActiveHuntAdminView | null;
@@ -30,6 +32,17 @@ const ActiveHuntSummary = ({ hunt }: Props) => {
           <p>
             Prize location:{" "}
             {hunt.locationNote ?? `${hunt.mapLatitude}, ${hunt.mapLongitude}`}
+          </p>
+          <p>
+            Firestore ID:{" "}
+            <Link
+              href={getFirestoreConsoleUrl(hunt.id)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-link underline"
+            >
+              {hunt.id}
+            </Link>
           </p>
         </div>
       )}

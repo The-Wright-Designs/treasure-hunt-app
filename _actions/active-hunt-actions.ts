@@ -29,5 +29,8 @@ export async function getActiveHunt(): Promise<ActiveHuntView | null> {
     mapLatitude: hunt.mapLatitude,
     mapLongitude: hunt.mapLongitude,
     mapZoom: hunt.mapZoom,
+    circleLatitude: hunt.circleLatitude,
+    circleLongitude: hunt.circleLongitude,
+    circleRadius: hunt.circleRadius,
   };
 }

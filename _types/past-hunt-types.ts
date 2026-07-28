@@ -11,6 +11,9 @@ export interface Hunt {
   mapLatitude: number;
   mapLongitude: number;
   mapZoom: number;
+  circleLatitude?: number;
+  circleLongitude?: number;
+  circleRadius?: number;
   locationNote?: string;
 }
 
@@ -29,6 +32,10 @@ export interface QueuedHuntView {
   clueCount: number;
   mapLatitude: number;
   mapLongitude: number;
+  mapZoom: number;
+  circleLatitude?: number;
+  circleLongitude?: number;
+  circleRadius?: number;
   locationNote?: string;
 }
 
@@ -42,6 +49,10 @@ export interface ActiveHuntAdminView {
   completedCount: number;
   mapLatitude: number;
   mapLongitude: number;
+  mapZoom: number;
+  circleLatitude?: number;
+  circleLongitude?: number;
+  circleRadius?: number;
   locationNote?: string;
 }
 
@@ -53,4 +64,7 @@ export interface ActiveHuntView {
   mapLatitude: number;
   mapLongitude: number;
   mapZoom: number;
+  circleLatitude?: number;
+  circleLongitude?: number;
+  circleRadius?: number;
 }
