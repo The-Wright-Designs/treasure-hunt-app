@@ -2,12 +2,18 @@ import { ShieldPlus } from "lucide-react";
 import HuntForm from "@/_components/admin/hunt-form";
 import HuntQueue from "@/_components/admin/hunt-queue";
 import ActiveHuntSummary from "@/_components/admin/active-hunt-summary";
-import { getQueuedHunts, getActiveHuntAdmin } from "@/_actions/admin-actions";
+import HuntAttentionList from "@/_components/admin/hunt-attention-list";
+import {
+  getQueuedHunts,
+  getActiveHuntAdmin,
+  getClosedHuntsNeedingAttention,
+} from "@/_actions/admin-actions";
 
 const AdminPage = async () => {
-  const [queuedHunts, activeHunt] = await Promise.all([
+  const [queuedHunts, activeHunt, huntsNeedingAttention] = await Promise.all([
     getQueuedHunts(),
     getActiveHuntAdmin(),
+    getClosedHuntsNeedingAttention(),
   ]);
 
   return (
@@ -23,6 +29,8 @@ const AdminPage = async () => {
       </p>
 
       <HuntForm />
+
+      <HuntAttentionList hunts={huntsNeedingAttention} />
 
       <ActiveHuntSummary hunt={activeHunt} />
 

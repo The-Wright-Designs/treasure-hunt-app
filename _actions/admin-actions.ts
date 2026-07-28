@@ -7,7 +7,9 @@ import {
   Hunt,
   QueuedHuntView,
   ActiveHuntAdminView,
+  ClosedHuntAdminView,
 } from "@/_types/past-hunt-types";
+import { pickWinner, notifyHuntClosed } from "@/_lib/utils/hunt-notify";
 
 function getSastDay(value: string): number {
   const [year, month, date] = value.split("-").map(Number);
@@ -93,7 +95,96 @@ export async function getActiveHuntAdmin(): Promise<ActiveHuntAdminView | null> 
     circleLongitude: hunt.circleLongitude,
     circleRadius: hunt.circleRadius,
     locationNote: hunt.locationNote,
+    closedAt: hunt.closedAt,
+    notifiedAt: hunt.notifiedAt,
   };
+}
+
+export async function getClosedHuntsNeedingAttention(): Promise<
+  ClosedHuntAdminView[]
+> {
+  if (!(await isAdmin())) return [];
+
+  const snapshot = await adminDb
+    .collection("hunts")
+    .where("ongoing", "==", false)
+    .get();
+
+  return snapshot.docs
+    .filter((doc) => {
+      const hunt = doc.data() as Hunt;
+      return !!hunt.closedAt && !hunt.notifiedAt;
+    })
+    .map((doc) => {
+      const hunt = doc.data() as Hunt;
+      return {
+        id: doc.id,
+        deadline: hunt.deadline,
+        closedAt: hunt.closedAt,
+        notifiedAt: hunt.notifiedAt,
+        winner: hunt.winner ?? null,
+        completedCount: hunt.completedBy?.length ?? 0,
+      };
+    });
+}
+
+export async function resendHuntEmail(
+  huntId: string,
+): Promise<{ success: boolean; error?: string }> {
+  if (!(await isAdmin())) {
+    return { success: false, error: "You are not authorised to do this." };
+  }
+
+  const doc = await adminDb.collection("hunts").doc(huntId).get();
+
+  if (!doc.exists) {
+    return { success: false, error: "That hunt no longer exists." };
+  }
+
+  const sent = await notifyHuntClosed(huntId, doc.data() as Hunt);
+
+  if (!sent) {
+    return { success: false, error: "The email failed to send. Try again." };
+  }
+
+  revalidatePath("/admin");
+
+  return { success: true };
+}
+
+export async function closeHuntNow(
+  huntId: string,
+): Promise<{ success: boolean; error?: string }> {
+  if (!(await isAdmin())) {
+    return { success: false, error: "You are not authorised to do this." };
+  }
+
+  const ref = adminDb.collection("hunts").doc(huntId);
+  const doc = await ref.get();
+
+  if (!doc.exists) {
+    return { success: false, error: "That hunt no longer exists." };
+  }
+
+  const hunt = doc.data() as Hunt;
+  const closedAt = new Date().toISOString();
+  const winner = pickWinner(hunt);
+
+  await ref.update({ ongoing: false, closedAt, winner });
+
+  const sent = await notifyHuntClosed(huntId, { ...hunt, closedAt, winner });
+
+  revalidatePath("/admin");
+  revalidatePath("/active-hunt");
+
+  if (!sent) {
+    return {
+      success: false,
+      error: "The hunt was closed but the email failed. Resend it below.",
+    };
+  }
+
+  return { success: true };
 }
 
 export async function createHunt(

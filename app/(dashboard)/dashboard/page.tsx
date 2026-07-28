@@ -28,7 +28,7 @@ const Dashboard = async () => {
           backgroundColor="teal"
         >
           Trust your instincts - If a situation feels uncomfortable or unsafe,
-          it's okay to remove yourself and seek help from a trusted adult.
+          it&apos;s okay to remove yourself and seek help from a trusted adult.
         </InfoCard>
         <InfoCard
           heading="Safety Tips"

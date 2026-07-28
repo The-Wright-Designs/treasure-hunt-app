@@ -28,12 +28,17 @@ function getTimeRemaining(deadline: string): TimeRemaining {
 }
 
 export default function CountdownTimer({ deadline, cssClasses }: CountdownTimerProps) {
-  const [time, setTime] = useState<TimeRemaining>({ days: 0, hours: 0, minutes: 0 });
+  const [time, setTime] = useState<TimeRemaining | null>(null);
 
   useEffect(() => {
-    setTime(getTimeRemaining(deadline));
-    const interval = setInterval(() => setTime(getTimeRemaining(deadline)), 60000);
-    return () => clearInterval(interval);
+    const update = () => setTime(getTimeRemaining(deadline));
+    const frame = requestAnimationFrame(update);
+    const interval = setInterval(update, 60000);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      clearInterval(interval);
+    };
   }, [deadline]);
 
   return (
@@ -44,21 +49,21 @@ export default function CountdownTimer({ deadline, cssClasses }: CountdownTimerP
       )}
     >
       <div className="flex flex-col items-center gap-[3px]">
-        <p className="text-[12px] font-semibold leading-none">{time.days}</p>
+        <p className="text-[12px] font-semibold leading-none">{time?.days ?? 0}</p>
         <p className="text-[6px] leading-none">Days</p>
       </div>
 
       <div className="w-px self-stretch bg-black opacity-20" />
 
       <div className="flex flex-col items-center gap-[3px]">
-        <p className="text-[12px] font-semibold leading-none">{time.hours}</p>
+        <p className="text-[12px] font-semibold leading-none">{time?.hours ?? 0}</p>
         <p className="text-[6px] leading-none">Hours</p>
       </div>
 
       <div className="w-px self-stretch bg-black opacity-20" />
 
       <div className="flex flex-col items-center gap-[3px]">
-        <p className="text-[12px] font-semibold leading-none">{time.minutes}</p>
+        <p className="text-[12px] font-semibold leading-none">{time?.minutes ?? 0}</p>
         <p className="text-[6px] leading-none">Min</p>
       </div>
     </div>

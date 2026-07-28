@@ -32,7 +32,11 @@ export default function FooterComponent() {
           return (
             <button
               key={url}
-              onClick={() => { closeHeaderMenu(); isOpen ? close() : open(); }}
+              onClick={() => {
+                closeHeaderMenu();
+                if (isOpen) close();
+                else open();
+              }}
               className={classNames(
                 "flex flex-1 flex-col items-center justify-center gap-1.5 py-7.5 px-2 desktop:hover:cursor-pointer",
                 { "bg-black/90": active },

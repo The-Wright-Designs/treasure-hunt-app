@@ -7,6 +7,7 @@ export interface Hunt {
   winner: string | null;
   deadline: string;
   closedAt?: string;
+  notifiedAt?: string;
   prizeAmount: number;
   mapLatitude: number;
   mapLongitude: number;
@@ -54,6 +55,17 @@ export interface ActiveHuntAdminView {
   circleLongitude?: number;
   circleRadius?: number;
   locationNote?: string;
+  closedAt?: string;
+  notifiedAt?: string;
+}
+
+export interface ClosedHuntAdminView {
+  id: string;
+  deadline: string;
+  closedAt?: string;
+  notifiedAt?: string;
+  winner: string | null;
+  completedCount: number;
 }
 
 export interface ActiveHuntView {
