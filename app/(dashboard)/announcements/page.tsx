@@ -1,10 +1,10 @@
 import { Megaphone } from "lucide-react";
 import AnnouncementsCard from "@/_components/ui/cards/announcements/announcements-card";
-import data from "@/_data/general-data.json";
+import { getAnnouncements } from "@/_actions/announcement-actions";
 
-const { announcements } = data;
+const AnnouncementsPage = async () => {
+  const announcements = await getAnnouncements();
 
-const AnnouncementsPage = () => {
   return (
     <div className="flex flex-col gap-10 px-5 pt-10">
       <div className="flex gap-[10px] items-center">
@@ -12,15 +12,19 @@ const AnnouncementsPage = () => {
         <h1 className="text-[28px] min-[375px]:text-heading">Announcements</h1>
       </div>
 
-      <div className="flex flex-col gap-5">
-        {announcements.map((announcement) => (
-          <AnnouncementsCard
-            key={announcement.heading}
-            heading={announcement.heading}
-            body={announcement.body}
-          />
-        ))}
-      </div>
+      {announcements.length === 0 ? (
+        <p>No announcements right now.</p>
+      ) : (
+        <div className="flex flex-col gap-5">
+          {announcements.map((announcement) => (
+            <AnnouncementsCard
+              key={announcement.id}
+              heading={announcement.heading}
+              body={announcement.body}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };
