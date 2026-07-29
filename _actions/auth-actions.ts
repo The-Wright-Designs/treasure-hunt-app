@@ -15,10 +15,12 @@ export async function verifyAuthRecaptcha(token: string) {
 export async function createSession(idToken: string, phone?: string) {
   const expiresIn = 60 * 60 * 24 * 7 * 1000;
   const decoded = await adminAuth.verifyIdToken(idToken);
-  await adminDb.collection("users").doc(decoded.uid).set(
+  const userRef = adminDb.collection("users").doc(decoded.uid);
+  const existing = (await userRef.get()).data() as { email?: string } | undefined;
+  await userRef.set(
     {
       name: decoded.name ?? "",
-      email: decoded.email ?? "",
+      ...(!existing?.email && { email: decoded.email ?? "" }),
       emailVerified: decoded.email_verified === true,
       ...(phone !== undefined && { phone }),
     },

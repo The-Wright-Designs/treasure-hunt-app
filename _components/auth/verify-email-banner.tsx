@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { sendEmailVerification } from "firebase/auth";
 import { MailWarning } from "lucide-react";
@@ -18,6 +18,7 @@ const VerifyEmailBanner = ({ cssClasses }: { cssClasses?: string }) => {
   const [resending, setResending] = useState(false);
   const [resent, setResent] = useState(false);
   const [error, setError] = useState("");
+  const autoSent = useRef(false);
 
   const syncVerifiedState = useCallback(async () => {
     if (!user) return false;
@@ -42,7 +43,18 @@ const VerifyEmailBanner = ({ cssClasses }: { cssClasses?: string }) => {
         if (isVerified) {
           setVerified(true);
           router.refresh();
+          return;
         }
+        if (autoSent.current || !user.email) return;
+        autoSent.current = true;
+
+        const sentKey = `verification-sent:${user.email}`;
+        if (sessionStorage.getItem(sentKey)) return;
+        sessionStorage.setItem(sentKey, "1");
+
+        sendEmailVerification(user).catch((err) => {
+          console.error("Verification email failed to send:", err);
+        });
       })
       .catch((err) => {
         console.error("Verification state check failed:", err);
@@ -63,6 +75,8 @@ const VerifyEmailBanner = ({ cssClasses }: { cssClasses?: string }) => {
     setResending(true);
     try {
       await sendEmailVerification(user);
+      if (user.email)
+        sessionStorage.setItem(`verification-sent:${user.email}`, "1");
       setResent(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : "";
@@ -106,7 +120,10 @@ const VerifyEmailBanner = ({ cssClasses }: { cssClasses?: string }) => {
           <h3>Verify your email address</h3>
           <p className="text-[12px]">
             We sent a verification link to {user.email}. Please click it to
-            confirm your address.
+            confirm your address.{" "}
+            <strong>
+              If you can't see the email, please check your spam folder.
+            </strong>
           </p>
         </div>
       </div>
@@ -120,7 +137,11 @@ const VerifyEmailBanner = ({ cssClasses }: { cssClasses?: string }) => {
           disabled={checking}
           cssClasses="w-full tablet:w-auto"
         >
-          {checking ? <div className="spinner-black" /> : "I've verified"}
+          {checking ? (
+            <div className="spinner spinner-black" />
+          ) : (
+            "I've verified"
+          )}
         </ButtonType>
         <ButtonType
           type="button"

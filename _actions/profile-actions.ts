@@ -15,19 +15,65 @@ export async function getProfile() {
   return doc.data() as { name: string; phone: string; email: string };
 }
 
-export async function saveProfile(formData: FormData): Promise<void> {
+export type SaveProfileState =
+  | { ok: true; emailChanged: boolean }
+  | { ok: false; error: string }
+  | null;
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const SA_PHONE_REGEX = /^(\+27|0)[6-8][0-9]{8}$/;
+
+export async function saveProfile(
+  _prevState: SaveProfileState,
+  formData: FormData
+): Promise<SaveProfileState> {
   const session = (await cookies()).get("session")?.value;
-  if (!session) return;
+  if (!session) return { ok: false, error: "Your session has expired. Please log in again." };
 
-  const decoded = await adminAuth.verifySessionCookie(session, true);
+  let decoded;
+  try {
+    decoded = await adminAuth.verifySessionCookie(session, true);
+  } catch {
+    return { ok: false, error: "Your session has expired. Please log in again." };
+  }
 
-  await adminDb.collection("users").doc(decoded.uid).set(
-    {
-      phone: formData.get("phone") as string,
-      email: formData.get("email") as string,
-    },
-    { merge: true }
-  );
+  const phone = ((formData.get("phone") as string) ?? "").trim();
+  const email = ((formData.get("email") as string) ?? "").trim();
+
+  if (!EMAIL_REGEX.test(email)) {
+    return { ok: false, error: "Please enter a valid email address." };
+  }
+
+  if (phone !== "" && !SA_PHONE_REGEX.test(phone)) {
+    return { ok: false, error: "Please enter a valid South African phone number." };
+  }
+
+  const emailChanged = email !== decoded.email;
+
+  if (emailChanged) {
+    try {
+      await adminAuth.updateUser(decoded.uid, { email, emailVerified: false });
+    } catch (error) {
+      const code = error instanceof Error && "code" in error ? String(error.code) : "";
+      if (code === "auth/email-already-exists") {
+        return { ok: false, error: "That email is already in use." };
+      }
+      if (code === "auth/invalid-email") {
+        return { ok: false, error: "Please enter a valid email address." };
+      }
+      console.error("Auth email update failed:", error);
+      return { ok: false, error: "Something went wrong. Please try again." };
+    }
+  }
+
+  await adminDb
+    .collection("users")
+    .doc(decoded.uid)
+    .set({ phone, email, ...(emailChanged && { emailVerified: false }) }, { merge: true });
+
+  if (emailChanged) (await cookies()).delete("session");
 
   revalidatePath("/profile");
+
+  return { ok: true, emailChanged };
 }

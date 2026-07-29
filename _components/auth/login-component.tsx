@@ -14,7 +14,7 @@ import TextInput from "@/_components/ui/inputs/text-input";
 import ButtonType from "@/_components/ui/buttons/button-type";
 import logo from "@/public/logo/treasure-hunt-app-logo.png";
 
-const LoginComponent = () => {
+const LoginComponent = ({ notice }: { notice?: string }) => {
   const { executeRecaptcha } = useGoogleReCaptcha();
   const [error, setError] = useState("");
   const [values, setValues] = useState({ email: "", password: "" });
@@ -44,7 +44,7 @@ const LoginComponent = () => {
         email,
         password,
       );
-      const idToken = await credential.user.getIdToken();
+      const idToken = await credential.user.getIdToken(true);
       await createSession(idToken);
       window.location.href = "/dashboard";
     } catch (err) {
@@ -107,6 +107,11 @@ const LoginComponent = () => {
       {view === "login" ? (
         <>
           <h2>Login</h2>
+          {notice && (
+            <p className="bg-teal/10 border border-teal rounded-[6px] p-3 text-[12px]">
+              {notice}
+            </p>
+          )}
           <form
             action={handleSubmit}
             className="flex flex-col gap-5 items-center w-full"
