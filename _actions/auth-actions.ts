@@ -16,7 +16,12 @@ export async function createSession(idToken: string, phone?: string) {
   const expiresIn = 60 * 60 * 24 * 7 * 1000;
   const decoded = await adminAuth.verifyIdToken(idToken);
   await adminDb.collection("users").doc(decoded.uid).set(
-    { name: decoded.name ?? "", email: decoded.email ?? "", phone: phone ?? "" },
+    {
+      name: decoded.name ?? "",
+      email: decoded.email ?? "",
+      emailVerified: decoded.email_verified === true,
+      ...(phone !== undefined && { phone }),
+    },
     { merge: true }
   );
   const sessionCookie = await adminAuth.createSessionCookie(idToken, { expiresIn });
@@ -28,6 +33,18 @@ export async function createSession(idToken: string, phone?: string) {
     path: "/",
     sameSite: "lax",
   });
+}
+
+export async function requireVerifiedSession() {
+  const session = (await cookies()).get("session")?.value;
+  if (!session) throw new Error("auth/no-session");
+
+  const decoded = await adminAuth.verifySessionCookie(session, true);
+  if (decoded.email_verified !== true) {
+    throw new Error("auth/email-not-verified");
+  }
+
+  return decoded;
 }
 
 export async function deleteSession() {

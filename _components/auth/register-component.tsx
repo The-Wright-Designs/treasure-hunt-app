@@ -3,7 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  updateProfile,
+  sendEmailVerification,
+} from "firebase/auth";
 import Image from "next/image";
 import Link from "next/link";
 import { Check, X } from "lucide-react";
@@ -184,10 +188,11 @@ const RegisterComponent = () => {
                 }
                 setRegistering(true);
                 try {
-                  if (executeRecaptcha) {
-                    const token = await executeRecaptcha("register");
-                    await verifyAuthRecaptcha(token);
+                  if (!executeRecaptcha) {
+                    throw new Error("reCAPTCHA: not ready");
                   }
+                  const token = await executeRecaptcha("register");
+                  await verifyAuthRecaptcha(token);
                   const credential = await createUserWithEmailAndPassword(
                     auth,
                     values.email,
@@ -196,13 +201,23 @@ const RegisterComponent = () => {
                   await updateProfile(credential.user, {
                     displayName: values.name,
                   });
+                  try {
+                    await sendEmailVerification(credential.user);
+                  } catch (verificationError) {
+                    console.error(
+                      "Verification email failed to send:",
+                      verificationError,
+                    );
+                  }
                   const idToken = await credential.user.getIdToken(true);
                   await createSession(idToken, values.phone);
                   router.push("/dashboard");
                 } catch (err) {
                   const message = err instanceof Error ? err.message : "";
                   if (message.includes("reCAPTCHA")) {
-                    setError("Security check failed. Please try again.");
+                    setError(
+                      "Security check failed. Please refresh the page and try again.",
+                    );
                   } else if (message.includes("auth/email-already-in-use")) {
                     setError("An account with this email already exists.");
                   } else if (message.includes("auth/invalid-email")) {

@@ -34,10 +34,11 @@ const LoginComponent = () => {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
     try {
-      if (executeRecaptcha) {
-        const token = await executeRecaptcha("login");
-        await verifyAuthRecaptcha(token);
+      if (!executeRecaptcha) {
+        throw new Error("reCAPTCHA: not ready");
       }
+      const token = await executeRecaptcha("login");
+      await verifyAuthRecaptcha(token);
       const credential = await signInWithEmailAndPassword(
         auth,
         email,
@@ -49,7 +50,9 @@ const LoginComponent = () => {
     } catch (err) {
       const message = err instanceof Error ? err.message : "";
       if (message.includes("reCAPTCHA")) {
-        setError("Security check failed. Please try again.");
+        setError(
+          "Security check failed. Please refresh the page and try again.",
+        );
       } else if (
         message.includes("auth/user-not-found") ||
         message.includes("auth/wrong-password") ||
@@ -71,16 +74,19 @@ const LoginComponent = () => {
     setSubmitting(true);
     const email = formData.get("resetEmail") as string;
     try {
-      if (executeRecaptcha) {
-        const token = await executeRecaptcha("forgot_password");
-        await verifyAuthRecaptcha(token);
+      if (!executeRecaptcha) {
+        throw new Error("reCAPTCHA: not ready");
       }
+      const token = await executeRecaptcha("forgot_password");
+      await verifyAuthRecaptcha(token);
       await sendPasswordResetEmail(auth, email);
       setResetSuccess(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : "";
       if (message.includes("reCAPTCHA")) {
-        setResetError("Security check failed. Please try again.");
+        setResetError(
+          "Security check failed. Please refresh the page and try again.",
+        );
       } else if (message.includes("auth/invalid-email")) {
         setResetError("Please enter a valid email address.");
       } else if (message.includes("auth/too-many-requests")) {
