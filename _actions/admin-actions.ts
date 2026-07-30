@@ -54,6 +54,7 @@ export async function getQueuedHunts(): Promise<QueuedHuntView[]> {
         deadline: hunt.deadline,
         prizeAmount: hunt.prizeAmount,
         clueCount: hunt.clues?.length ?? 0,
+        entryCode: hunt.entryCode ?? "",
         mapLatitude: hunt.mapLatitude,
         mapLongitude: hunt.mapLongitude,
         mapZoom: hunt.mapZoom,
@@ -86,6 +87,7 @@ export async function getActiveHuntAdmin(): Promise<ActiveHuntAdminView | null> 
     deadline: hunt.deadline,
     prizeAmount: hunt.prizeAmount,
     clueCount: hunt.clues?.length ?? 0,
+    entryCode: hunt.entryCode ?? "",
     activeHunters: hunt.participants?.length ?? 0,
     completedCount: hunt.completedBy?.length ?? 0,
     mapLatitude: hunt.mapLatitude,
@@ -294,12 +296,23 @@ export async function createHunt(
     return { success: false, error: "Add at least one clue." };
   }
 
+  const entryCode =
+    formData.get("entryCode")?.toString().trim().toUpperCase() ?? "";
+
+  if (entryCode.length < 4) {
+    return {
+      success: false,
+      error: "Entry code must be at least 4 characters.",
+    };
+  }
+
   try {
     await adminDb.collection("hunts").add({
       ongoing: false,
       startsAt: startsAt.toISOString(),
       deadline: deadline.toISOString(),
       clues,
+      entryCode,
       prizeAmount,
       mapLatitude,
       mapLongitude,

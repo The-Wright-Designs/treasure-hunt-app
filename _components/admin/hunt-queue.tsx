@@ -30,6 +30,7 @@ const HuntQueue = ({ hunts }: Props) => {
                 {hunt.locationNote ??
                   `${hunt.mapLatitude}, ${hunt.mapLongitude}`}
               </p>
+              <p>Entry code: {hunt.entryCode || "—"}</p>
               <p>
                 Firestore ID:{" "}
                 <Link

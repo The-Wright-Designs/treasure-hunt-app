@@ -122,7 +122,7 @@ const VerifyEmailBanner = ({ cssClasses }: { cssClasses?: string }) => {
             We sent a verification link to {user.email}. Please click it to
             confirm your address.{" "}
             <strong>
-              If you can't see the email, please check your spam folder.
+              If you can&apos;t see the email, please check your spam folder.
             </strong>
           </p>
         </div>

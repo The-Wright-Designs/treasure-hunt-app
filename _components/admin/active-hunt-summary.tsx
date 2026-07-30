@@ -36,6 +36,7 @@ const ActiveHuntSummary = ({ hunt }: Props) => {
             Prize location:{" "}
             {hunt.locationNote ?? `${hunt.mapLatitude}, ${hunt.mapLongitude}`}
           </p>
+          <p>Entry code: {hunt.entryCode || "—"}</p>
           <p>
             Firestore ID:{" "}
             <Link

@@ -1,5 +1,7 @@
 import { MapPinned } from "lucide-react";
 import HuntCard from "@/_components/ui/cards/active-hunt/hunt-card";
+import HuntEntryForm from "@/_components/ui/hunt-entry-form";
+import JoinHuntButton from "@/_components/ui/buttons/join-hunt-button";
 import MapComponent from "@/_components/ui/google-map";
 import { getActiveHunt } from "@/_actions/active-hunt-actions";
 
@@ -18,45 +20,66 @@ const ActiveHuntPage = async () => {
       ) : (
         <>
           <p>
-            Use the clues and map below to find this week&apos;s hidden item.
-            Once you find it, scan the QR code using the app enter the weekly
-            draw. A random winner is selected at the end of each week and
-            contacted directly to claim their R500 prize.
+            Join this week&apos;s hunt to unlock the clues and map. Once
+            you&apos;ve tracked down the hidden item, enter the code printed on
+            it to lock in your spot in the weekly draw. A random winner is
+            selected at the end of each week and contacted directly to claim
+            their R500 prize.
           </p>
 
           <HuntCard
             heading="Active hunt"
-            buttonText="Scan QR Code"
             deadline={activeHunt.deadline}
             prizeAmount={activeHunt.prizeAmount}
             activeHunters={activeHunt.activeHunters}
           />
 
-          {activeHunt.clues.length > 0 && (
+          {!activeHunt.joined ? (
             <div className="flex flex-col gap-5">
-              <h3>Clues</h3>
-              <ol className="list-decimal flex flex-col gap-1 pl-5">
-                {activeHunt.clues.map((clue, index) => (
-                  <li key={index}>
-                    <p>{clue}</p>
-                  </li>
-                ))}
-              </ol>
+              <p>
+                Ready to start hunting? Join the hunt to unlock this week&apos;s
+                clues and map.
+              </p>
+              <JoinHuntButton huntId={activeHunt.id} />
             </div>
-          )}
+          ) : (
+            <>
+              <HuntEntryForm
+                huntId={activeHunt.id}
+                entered={activeHunt.entered}
+              />
 
-          <div className="flex flex-col gap-5">
-            <h3>Map</h3>
-            <MapComponent
-              lat={activeHunt.mapLatitude}
-              lng={activeHunt.mapLongitude}
-              zoom={activeHunt.mapZoom}
-              circleLat={activeHunt.circleLatitude}
-              circleLng={activeHunt.circleLongitude}
-              circleRadius={activeHunt.circleRadius}
-              cssClasses="w-full h-[350px]"
-            />
-          </div>
+              {!activeHunt.entered && (
+                <>
+                  {activeHunt.clues.length > 0 && (
+                    <div className="flex flex-col gap-5">
+                      <h3>Clues</h3>
+                      <ol className="list-decimal flex flex-col gap-1 pl-5">
+                        {activeHunt.clues.map((clue, index) => (
+                          <li key={index}>
+                            <p>{clue}</p>
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  )}
+
+                  <div className="flex flex-col gap-5">
+                    <h3>Map</h3>
+                    <MapComponent
+                      lat={activeHunt.mapLatitude}
+                      lng={activeHunt.mapLongitude}
+                      zoom={activeHunt.mapZoom}
+                      circleLat={activeHunt.circleLatitude}
+                      circleLng={activeHunt.circleLongitude}
+                      circleRadius={activeHunt.circleRadius}
+                      cssClasses="w-full h-[350px]"
+                    />
+                  </div>
+                </>
+              )}
+            </>
+          )}
 
           <div className="flex flex-col gap-5">
             <h3>Rules</h3>
@@ -78,17 +101,17 @@ const ActiveHuntPage = async () => {
               </li>
               <li>
                 <p>
-                  You&apos;ve got to find the item yourself — sharing the QR
-                  code or number with friends so they can enter without finding
-                  it isn&apos;t allowed, and you&apos;ll be disqualified if you
-                  do. If you think about it, the less people who find the hidden
+                  You&apos;ve got to find the item yourself — sharing the entry
+                  code with friends so they can enter without finding it
+                  isn&apos;t allowed, and you&apos;ll be disqualified if you do.
+                  If you think about it, the less people who find the hidden
                   item, the better your chances are of winning
                 </p>
               </li>
               <li>
                 <p>
-                  Once you&apos;ve tracked down the hidden item, scan the QR
-                  code using the app to lock in your entry
+                  Once you&apos;ve tracked down the hidden item, enter the code
+                  printed on it to lock in your entry
                 </p>
               </li>
               <li>

@@ -2,6 +2,7 @@ export interface Hunt {
   ongoing: boolean;
   startsAt: string;
   clues: string[];
+  entryCode: string;
   participants: string[];
   completedBy: string[];
   winner: string | null;
@@ -31,6 +32,7 @@ export interface QueuedHuntView {
   deadline: string;
   prizeAmount: number;
   clueCount: number;
+  entryCode: string;
   mapLatitude: number;
   mapLongitude: number;
   mapZoom: number;
@@ -46,6 +48,7 @@ export interface ActiveHuntAdminView {
   deadline: string;
   prizeAmount: number;
   clueCount: number;
+  entryCode: string;
   activeHunters: number;
   completedCount: number;
   mapLatitude: number;
@@ -69,9 +72,12 @@ export interface ClosedHuntAdminView {
 }
 
 export interface ActiveHuntView {
+  id: string;
   deadline: string;
   prizeAmount: number;
   activeHunters: number;
+  joined: boolean;
+  entered: boolean;
   clues: string[];
   mapLatitude: number;
   mapLongitude: number;

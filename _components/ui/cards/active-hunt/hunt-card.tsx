@@ -7,7 +7,7 @@ import { formatDeadlineLabel } from "@/_lib/utils/format-deadline";
 interface HuntCardProps {
   heading: string;
   buttonLink?: string;
-  buttonText: string;
+  buttonText?: string;
   cssClasses?: string;
   deadline: string;
   prizeAmount: number;
@@ -16,7 +16,7 @@ interface HuntCardProps {
 
 const HuntCard = ({
   heading,
-  buttonLink = "#",
+  buttonLink,
   buttonText,
   cssClasses,
   deadline,
@@ -53,9 +53,11 @@ const HuntCard = ({
         </div>
       </div>
 
-      <ButtonLink href={buttonLink} cssClasses="w-full">
-        {buttonText}
-      </ButtonLink>
+      {buttonLink && buttonText && (
+        <ButtonLink href={buttonLink} cssClasses="w-full">
+          {buttonText}
+        </ButtonLink>
+      )}
     </div>
   );
 };

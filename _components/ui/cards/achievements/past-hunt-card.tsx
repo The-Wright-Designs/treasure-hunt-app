@@ -54,7 +54,7 @@ const PastHuntCard = ({
           <p className="text-white flex-1">{completed ? "Yes" : "No"}</p>
         </div>
         <div className="flex gap-[10px]">
-          <p className="text-white w-[140px] shrink-0">Hunters who finished:</p>
+          <p className="text-white w-[140px] shrink-0">Hunters who entered:</p>
           <p className="text-white flex-1">{noOfHunters}</p>
         </div>
       </div>

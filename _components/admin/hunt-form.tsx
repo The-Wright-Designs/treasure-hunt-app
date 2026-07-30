@@ -46,6 +46,7 @@ const HuntForm = () => {
   const [circleLongitude, setCircleLongitude] = useState("");
   const [circleRadius, setCircleRadius] = useState("200");
   const [locationNote, setLocationNote] = useState("");
+  const [entryCode, setEntryCode] = useState("");
   const [formKey, setFormKey] = useState(0);
   const [dismissed, setDismissed] = useState(false);
   const [state, formAction] = useActionState(createHunt, { success: false });
@@ -89,8 +90,14 @@ const HuntForm = () => {
 
   const hasClue = clues.some((clue) => clue.trim() !== "");
 
+  const validEntryCode = entryCode.trim().length >= 4;
+
   const canSubmit =
-    validStartsAt && validCoords && (circleEmpty || validCircle) && hasClue;
+    validStartsAt &&
+    validCoords &&
+    (circleEmpty || validCircle) &&
+    hasClue &&
+    validEntryCode;
 
   const resetForm = () => {
     setClues([""]);
@@ -102,6 +109,7 @@ const HuntForm = () => {
     setCircleLongitude("");
     setCircleRadius("200");
     setLocationNote("");
+    setEntryCode("");
     setDismissed(true);
     setFormKey((prev) => prev + 1);
   };
@@ -304,6 +312,26 @@ const HuntForm = () => {
           <Plus size={16} color="#4B9DA9" />
           <span className="text-subheading">Add clue</span>
         </button>
+      </div>
+
+      <div className="flex flex-col gap-[6px] w-full">
+        <TextInput
+          label="Entry code"
+          name="entryCode"
+          required
+          placeholder="TEAL-4471"
+          value={entryCode}
+          onChange={(e) => setEntryCode(e.target.value)}
+        />
+        {entryCode !== "" && !validEntryCode && (
+          <p className="text-error text-[12px]">
+            Entry code must be at least 4 characters.
+          </p>
+        )}
+        <p className="text-[12px]">
+          Print this on the hidden item. Hunters type it in to lock in their
+          entry, so keep it secret until the hunt goes live.
+        </p>
       </div>
 
       {state.error && <p className="text-error text-[12px]">{state.error}</p>}
