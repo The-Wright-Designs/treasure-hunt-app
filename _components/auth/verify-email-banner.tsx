@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { sendEmailVerification } from "firebase/auth";
+import { FirebaseError } from "firebase/app";
 import { MailWarning } from "lucide-react";
 import classNames from "classnames";
 import { useAuth } from "@/_context/auth-context";
@@ -16,9 +17,9 @@ const VerifyEmailBanner = ({ cssClasses }: { cssClasses?: string }) => {
   const [checked, setChecked] = useState(false);
   const [checking, setChecking] = useState(false);
   const [resending, setResending] = useState(false);
-  const [resent, setResent] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
   const [error, setError] = useState("");
-  const autoSent = useRef(false);
 
   const syncVerifiedState = useCallback(async () => {
     if (!user) return false;
@@ -39,22 +40,9 @@ const VerifyEmailBanner = ({ cssClasses }: { cssClasses?: string }) => {
 
     syncVerifiedState()
       .then((isVerified) => {
-        if (!active) return;
-        if (isVerified) {
-          setVerified(true);
-          router.refresh();
-          return;
-        }
-        if (autoSent.current || !user.email) return;
-        autoSent.current = true;
-
-        const sentKey = `verification-sent:${user.email}`;
-        if (sessionStorage.getItem(sentKey)) return;
-        sessionStorage.setItem(sentKey, "1");
-
-        sendEmailVerification(user).catch((err) => {
-          console.error("Verification email failed to send:", err);
-        });
+        if (!active || !isVerified) return;
+        setVerified(true);
+        router.refresh();
       })
       .catch((err) => {
         console.error("Verification state check failed:", err);
@@ -68,20 +56,35 @@ const VerifyEmailBanner = ({ cssClasses }: { cssClasses?: string }) => {
     };
   }, [loading, user, syncVerifiedState, router]);
 
+  useEffect(() => {
+    if (cooldown <= 0) return;
+
+    const timer = setInterval(() => {
+      setCooldown((prev) => (prev <= 1 ? 0 : prev - 1));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [cooldown]);
+
   if (loading || !user || !checked || verified) return null;
 
   const handleResend = async () => {
     setError("");
+    setSent(false);
     setResending(true);
     try {
       await sendEmailVerification(user);
-      if (user.email)
-        sessionStorage.setItem(`verification-sent:${user.email}`, "1");
-      setResent(true);
+      setSent(true);
+      setCooldown(60);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "";
-      if (message.includes("auth/too-many-requests")) {
-        setError("Too many attempts. Please try again later.");
+      if (
+        err instanceof FirebaseError &&
+        err.code === "auth/too-many-requests"
+      ) {
+        setError(
+          "A link has already been sent. Please check your inbox and spam folder, then wait a few minutes before trying again.",
+        );
+        setCooldown(60);
       } else {
         setError("Could not send the link. Please try again.");
       }
@@ -91,6 +94,7 @@ const VerifyEmailBanner = ({ cssClasses }: { cssClasses?: string }) => {
 
   const handleRecheck = async () => {
     setError("");
+    setSent(false);
     setChecking(true);
     try {
       const isVerified = await syncVerifiedState();
@@ -119,12 +123,18 @@ const VerifyEmailBanner = ({ cssClasses }: { cssClasses?: string }) => {
         <div className="flex flex-col gap-1">
           <h3>Verify your email address</h3>
           <p className="text-[12px]">
-            We sent a verification link to {user.email}. Please click it to
-            confirm your address.{" "}
-            <strong>
-              If you can&apos;t see the email, please check your spam folder.
-            </strong>
+            A verification link was sent to {user.email}. Please click it to
+            confirm your address.
           </p>
+          <p className="text-[12px]">
+            If you can&apos;t see the email, before requesting a new link:
+          </p>
+          <ul className="list-disc pl-4 flex flex-col gap-1">
+            <li className="text-[12px]">Check your spam folder</li>
+            <li className="text-[12px]">
+              Double check your email address is correct in your profile
+            </li>
+          </ul>
         </div>
       </div>
       <div className="flex flex-col gap-2 tablet:flex-row">
@@ -150,18 +160,23 @@ const VerifyEmailBanner = ({ cssClasses }: { cssClasses?: string }) => {
           onClick={() => {
             handleResend();
           }}
-          disabled={resending || resent}
+          disabled={resending || cooldown > 0}
           cssClasses="w-full tablet:w-auto"
         >
           {resending ? (
             <div className="spinner" />
-          ) : resent ? (
-            "Link sent"
+          ) : cooldown > 0 ? (
+            `Resend in ${cooldown}s`
           ) : (
             "Resend link"
           )}
         </ButtonType>
       </div>
+      {sent && (
+        <p className="text-[12px]">
+          Link sent. Please check your inbox and spam folder.
+        </p>
+      )}
       {error && <p className="text-error text-[12px]">{error}</p>}
     </div>
   );

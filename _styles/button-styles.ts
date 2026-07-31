@@ -10,7 +10,7 @@ export const buttonStyles = (
   secondary?: boolean,
 ) =>
   classNames(
-    "flex font-medium text-subheading text-center px-4 justify-center rounded-[6px] desktop:hover:cursor-pointer",
+    "flex font-medium text-subheading text-center px-4 justify-center rounded-[6px] min-w-[140px] desktop:hover:cursor-pointer",
     cssClasses,
     {
       "opacity-50": pending || disabled,

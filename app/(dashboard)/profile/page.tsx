@@ -2,6 +2,7 @@ import { CircleUser } from "lucide-react";
 import DeleteAccount from "@/_components/ui/delete-account";
 import ProfileForm from "@/_components/ui/profile-form";
 import { getProfile } from "@/_actions/profile-actions";
+import ButtonType from "@/_components/ui/buttons/button-type";
 
 const ProfilePage = async () => {
   const profile = await getProfile();

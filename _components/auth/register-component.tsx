@@ -203,10 +203,6 @@ const RegisterComponent = () => {
                   });
                   try {
                     await sendEmailVerification(credential.user);
-                    sessionStorage.setItem(
-                      `verification-sent:${values.email}`,
-                      "1",
-                    );
                   } catch (verificationError) {
                     console.error(
                       "Verification email failed to send:",
