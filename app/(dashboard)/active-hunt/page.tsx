@@ -73,6 +73,7 @@ const ActiveHuntPage = async () => {
                       circleLat={activeHunt.circleLatitude}
                       circleLng={activeHunt.circleLongitude}
                       circleRadius={activeHunt.circleRadius}
+                      showUserLocation
                       cssClasses="w-full h-[350px]"
                     />
                   </div>
