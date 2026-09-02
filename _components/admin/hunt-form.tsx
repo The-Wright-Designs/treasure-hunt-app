@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useActionState } from "react";
+import { useEffect, useState, useActionState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import NumberInput from "@/_components/ui/inputs/number-input";
 import TextInput from "@/_components/ui/inputs/text-input";
 import SelectInput from "@/_components/ui/inputs/select-input";
 import ButtonType from "@/_components/ui/buttons/button-type";
 import MapComponent from "@/_components/ui/google-map";
-import { createHunt } from "@/_actions/admin-actions";
+import { createHunt, updateHunt } from "@/_actions/admin-actions";
+import { QueuedHuntView } from "@/_types/past-hunt-types";
 
 const isWeekday = (value: string, day: number) => {
   const [year, month, date] = value.split("-").map(Number);
@@ -35,21 +36,47 @@ const formatDeadline = (value: string) => {
   });
 };
 
-const HuntForm = () => {
-  const [clues, setClues] = useState<string[]>([""]);
-  const [startsAt, setStartsAt] = useState("");
-  const [minDate] = useState(getNextMonday);
-  const [mapLatitude, setMapLatitude] = useState("");
-  const [mapLongitude, setMapLongitude] = useState("");
-  const [mapZoom, setMapZoom] = useState("15.5");
-  const [circleLatitude, setCircleLatitude] = useState("");
-  const [circleLongitude, setCircleLongitude] = useState("");
-  const [circleRadius, setCircleRadius] = useState("200");
-  const [locationNote, setLocationNote] = useState("");
-  const [entryCode, setEntryCode] = useState("");
+interface Props {
+  hunt?: QueuedHuntView;
+  onSaved?: () => void;
+}
+
+const optionalNumber = (value?: number) =>
+  value === undefined ? "" : String(value);
+
+const HuntForm = ({ hunt, onSaved }: Props) => {
+  const [clues, setClues] = useState<string[]>(hunt?.clues ?? [""]);
+  const [startsAt, setStartsAt] = useState(hunt?.startsAt.slice(0, 10) ?? "");
+  const [minDate] = useState(() => {
+    const nextMonday = getNextMonday();
+    const current = hunt?.startsAt.slice(0, 10);
+    return current && current < nextMonday ? current : nextMonday;
+  });
+  const [mapLatitude, setMapLatitude] = useState(
+    optionalNumber(hunt?.mapLatitude),
+  );
+  const [mapLongitude, setMapLongitude] = useState(
+    optionalNumber(hunt?.mapLongitude),
+  );
+  const [mapZoom, setMapZoom] = useState(
+    hunt ? (hunt.mapZoom === 15 ? "15.00" : String(hunt.mapZoom)) : "15.5",
+  );
+  const [circleLatitude, setCircleLatitude] = useState(
+    optionalNumber(hunt?.circleLatitude),
+  );
+  const [circleLongitude, setCircleLongitude] = useState(
+    optionalNumber(hunt?.circleLongitude),
+  );
+  const [circleRadius, setCircleRadius] = useState(
+    hunt ? optionalNumber(hunt.circleRadius) : "200",
+  );
+  const [locationNote, setLocationNote] = useState(hunt?.locationNote ?? "");
+  const [entryCode, setEntryCode] = useState(hunt?.entryCode ?? "");
   const [formKey, setFormKey] = useState(0);
   const [dismissed, setDismissed] = useState(false);
-  const [state, formAction] = useActionState(createHunt, { success: false });
+  const [state, formAction] = useActionState(hunt ? updateHunt : createHunt, {
+    success: false,
+  });
 
   const validStartsAt =
     !!startsAt && isWeekday(startsAt, 1) && startsAt >= minDate;
@@ -122,7 +149,11 @@ const HuntForm = () => {
     setClues((prev) => prev.filter((_, i) => i !== index));
   };
 
-  if (state.success && !dismissed) {
+  useEffect(() => {
+    if (state.success && hunt && onSaved) onSaved();
+  }, [state, hunt, onSaved]);
+
+  if (state.success && !dismissed && !hunt) {
     return (
       <div className="flex flex-col gap-5 items-start px-5 py-7 bg-orange/50 rounded-[6px]">
         <p className="text-subheading text-[20px]">
@@ -150,6 +181,8 @@ const HuntForm = () => {
       }}
       className="flex flex-col gap-5"
     >
+      {hunt && <input type="hidden" name="huntId" value={hunt.id} />}
+
       <div className="flex flex-col gap-[6px] w-full">
         <label htmlFor="startsAt" className="text-paragraph">
           Starts on (Monday) *
@@ -341,7 +374,7 @@ const HuntForm = () => {
         disabled={!canSubmit}
         cssClasses="mt-5 desktop:hover:cursor-pointer"
       >
-        Create hunt
+        {hunt ? "Save changes" : "Create hunt"}
       </ButtonType>
     </form>
   );

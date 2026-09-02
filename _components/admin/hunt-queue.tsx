@@ -2,6 +2,8 @@ import Link from "next/link";
 import { QueuedHuntView } from "@/_types/past-hunt-types";
 import { formatDeadlineLabel } from "@/_lib/utils/format-deadline";
 import { getFirestoreConsoleUrl } from "@/_lib/utils/firestore-console-url";
+import ViewCluesButton from "@/_components/admin/view-clues-button";
+import EditHuntButton from "@/_components/admin/edit-hunt-button";
 
 interface Props {
   hunts: QueuedHuntView[];
@@ -42,6 +44,12 @@ const HuntQueue = ({ hunts }: Props) => {
                   {hunt.id}
                 </Link>
               </p>
+
+              <div className="flex flex-wrap gap-2 items-start mt-1.5">
+                <ViewCluesButton clues={hunt.clues} />
+
+                <EditHuntButton hunt={hunt} />
+              </div>
             </li>
           ))}
         </ul>

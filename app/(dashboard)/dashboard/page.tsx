@@ -20,7 +20,7 @@ const Dashboard = async () => {
           <HuntCard
             heading="Active hunt"
             buttonLink="/active-hunt"
-            buttonText="Join the hunt"
+            buttonText={activeHunt.joined ? "View Hunt" : "Join the hunt"}
             deadline={activeHunt.deadline}
             prizeAmount={activeHunt.prizeAmount}
             activeHunters={activeHunt.activeHunters}

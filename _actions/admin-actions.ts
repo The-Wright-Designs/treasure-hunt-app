@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { FieldValue } from "firebase-admin/firestore";
 import { adminAuth, adminDb } from "@/_lib/firebase-admin";
 import {
   Hunt,
@@ -54,6 +55,7 @@ export async function getQueuedHunts(): Promise<QueuedHuntView[]> {
         deadline: hunt.deadline,
         prizeAmount: hunt.prizeAmount,
         clueCount: hunt.clues?.length ?? 0,
+        clues: hunt.clues ?? [],
         entryCode: hunt.entryCode ?? "",
         mapLatitude: hunt.mapLatitude,
         mapLongitude: hunt.mapLongitude,
@@ -87,6 +89,7 @@ export async function getActiveHuntAdmin(): Promise<ActiveHuntAdminView | null> 
     deadline: hunt.deadline,
     prizeAmount: hunt.prizeAmount,
     clueCount: hunt.clues?.length ?? 0,
+    clues: hunt.clues ?? [],
     entryCode: hunt.entryCode ?? "",
     activeHunters: hunt.participants?.length ?? 0,
     completedCount: hunt.completedBy?.length ?? 0,
@@ -189,32 +192,88 @@ export async function closeHuntNow(
   return { success: true };
 }
 
-export async function createHunt(
+export async function updateHuntClues(
   _prevState: { success: boolean; error?: string },
   formData: FormData,
 ): Promise<{ success: boolean; error?: string }> {
   if (!(await isAdmin())) {
-    return { success: false, error: "You are not authorised to create hunts." };
+    return { success: false, error: "You are not authorised to do this." };
   }
 
+  const huntId = formData.get("huntId")?.toString() ?? "";
+
+  if (!huntId) {
+    return { success: false, error: "We couldn't find that hunt." };
+  }
+
+  const clues = formData
+    .getAll("clue")
+    .map((clue) => clue.toString().trim())
+    .filter((clue) => clue.length > 0);
+
+  if (clues.length === 0) {
+    return { success: false, error: "Add at least one clue." };
+  }
+
+  const ref = adminDb.collection("hunts").doc(huntId);
+
+  try {
+    const doc = await ref.get();
+
+    if (!doc.exists) {
+      return { success: false, error: "That hunt no longer exists." };
+    }
+
+    await ref.update({ clues });
+  } catch (error) {
+    console.error("Failed to update clues:", error);
+    return { success: false, error: "Failed to save the clues. Please try again." };
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/active-hunt");
+
+  return { success: true };
+}
+
+interface ParsedHunt {
+  startsAt: Date;
+  deadline: Date;
+  prizeAmount: number;
+  mapLatitude: number;
+  mapLongitude: number;
+  mapZoom: number;
+  circleLatitude?: number;
+  circleLongitude?: number;
+  circleRadius?: number;
+  locationNote: string;
+  clues: string[];
+  entryCode: string;
+}
+
+type ParseResult =
+  | { valid: true; hunt: ParsedHunt }
+  | { valid: false; error: string };
+
+function parseHuntForm(formData: FormData): ParseResult {
   const startsAtInput = formData.get("startsAt")?.toString() ?? "";
 
   if (!startsAtInput) {
-    return { success: false, error: "Start date is required." };
+    return { valid: false, error: "Start date is required." };
   }
 
   const startsAt = new Date(`${startsAtInput}T07:00:00+02:00`);
 
   if (isNaN(startsAt.getTime())) {
-    return { success: false, error: "Start date is not a valid date." };
+    return { valid: false, error: "Start date is not a valid date." };
   }
 
   if (getSastDay(startsAtInput) !== 1) {
-    return { success: false, error: "The start date must be a Monday." };
+    return { valid: false, error: "The start date must be a Monday." };
   }
 
   if (startsAt.getTime() <= Date.now()) {
-    return { success: false, error: "The start date must be in the future." };
+    return { valid: false, error: "The start date must be in the future." };
   }
 
   const deadline = new Date(`${addDays(startsAtInput, 6)}T17:00:00+02:00`);
@@ -225,15 +284,15 @@ export async function createHunt(
   const mapZoom = Number(formData.get("mapZoom"));
 
   if (!Number.isFinite(mapLatitude) || mapLatitude < -90 || mapLatitude > 90) {
-    return { success: false, error: "Latitude must be between -90 and 90." };
+    return { valid: false, error: "Latitude must be between -90 and 90." };
   }
 
   if (!Number.isFinite(mapLongitude) || mapLongitude < -180 || mapLongitude > 180) {
-    return { success: false, error: "Longitude must be between -180 and 180." };
+    return { valid: false, error: "Longitude must be between -180 and 180." };
   }
 
   if (![15, 15.5, 16].includes(mapZoom)) {
-    return { success: false, error: "Please choose a valid map zoom." };
+    return { valid: false, error: "Please choose a valid map zoom." };
   }
 
   const circleLatitudeInput =
@@ -258,7 +317,7 @@ export async function createHunt(
       circleLatitude > 90)
   ) {
     return {
-      success: false,
+      valid: false,
       error: "Circle latitude must be between -90 and 90.",
     };
   }
@@ -270,7 +329,7 @@ export async function createHunt(
       circleLongitude > 180)
   ) {
     return {
-      success: false,
+      valid: false,
       error: "Circle longitude must be between -180 and 180.",
     };
   }
@@ -280,7 +339,7 @@ export async function createHunt(
     (!Number.isFinite(circleRadius) || circleRadius < 1 || circleRadius > 5000)
   ) {
     return {
-      success: false,
+      valid: false,
       error: "Circle radius must be between 1 and 5000 metres.",
     };
   }
@@ -293,7 +352,7 @@ export async function createHunt(
     .filter((clue) => clue.length > 0);
 
   if (clues.length === 0) {
-    return { success: false, error: "Add at least one clue." };
+    return { valid: false, error: "Add at least one clue." };
   }
 
   const entryCode =
@@ -301,32 +360,138 @@ export async function createHunt(
 
   if (entryCode.length < 4) {
     return {
-      success: false,
+      valid: false,
       error: "Entry code must be at least 4 characters.",
     };
   }
 
-  try {
-    await adminDb.collection("hunts").add({
-      ongoing: false,
-      startsAt: startsAt.toISOString(),
-      deadline: deadline.toISOString(),
-      clues,
-      entryCode,
+  return {
+    valid: true,
+    hunt: {
+      startsAt,
+      deadline,
       prizeAmount,
       mapLatitude,
       mapLongitude,
       mapZoom,
-      ...(circleLatitude !== undefined ? { circleLatitude } : {}),
-      ...(circleLongitude !== undefined ? { circleLongitude } : {}),
-      ...(circleRadius !== undefined ? { circleRadius } : {}),
-      ...(locationNote ? { locationNote } : {}),
+      circleLatitude,
+      circleLongitude,
+      circleRadius,
+      locationNote,
+      clues,
+      entryCode,
+    },
+  };
+}
+
+export async function createHunt(
+  _prevState: { success: boolean; error?: string },
+  formData: FormData,
+): Promise<{ success: boolean; error?: string }> {
+  if (!(await isAdmin())) {
+    return { success: false, error: "You are not authorised to create hunts." };
+  }
+
+  const parsed = parseHuntForm(formData);
+
+  if (!parsed.valid) {
+    return { success: false, error: parsed.error };
+  }
+
+  const hunt = parsed.hunt;
+
+  try {
+    await adminDb.collection("hunts").add({
+      ongoing: false,
+      startsAt: hunt.startsAt.toISOString(),
+      deadline: hunt.deadline.toISOString(),
+      clues: hunt.clues,
+      entryCode: hunt.entryCode,
+      prizeAmount: hunt.prizeAmount,
+      mapLatitude: hunt.mapLatitude,
+      mapLongitude: hunt.mapLongitude,
+      mapZoom: hunt.mapZoom,
+      ...(hunt.circleLatitude !== undefined
+        ? { circleLatitude: hunt.circleLatitude }
+        : {}),
+      ...(hunt.circleLongitude !== undefined
+        ? { circleLongitude: hunt.circleLongitude }
+        : {}),
+      ...(hunt.circleRadius !== undefined
+        ? { circleRadius: hunt.circleRadius }
+        : {}),
+      ...(hunt.locationNote ? { locationNote: hunt.locationNote } : {}),
       participants: [],
       completedBy: [],
       winner: null,
     });
   } catch (error) {
     console.error("Failed to create hunt:", error);
+    return { success: false, error: "Failed to save the hunt. Please try again." };
+  }
+
+  revalidatePath("/active-hunt");
+  revalidatePath("/admin");
+
+  return { success: true };
+}
+
+export async function updateHunt(
+  _prevState: { success: boolean; error?: string },
+  formData: FormData,
+): Promise<{ success: boolean; error?: string }> {
+  if (!(await isAdmin())) {
+    return { success: false, error: "You are not authorised to edit hunts." };
+  }
+
+  const huntId = formData.get("huntId")?.toString() ?? "";
+
+  if (!huntId) {
+    return { success: false, error: "We couldn't find that hunt." };
+  }
+
+  const parsed = parseHuntForm(formData);
+
+  if (!parsed.valid) {
+    return { success: false, error: parsed.error };
+  }
+
+  const hunt = parsed.hunt;
+
+  const ref = adminDb.collection("hunts").doc(huntId);
+
+  try {
+    const doc = await ref.get();
+
+    if (!doc.exists) {
+      return { success: false, error: "That hunt no longer exists." };
+    }
+
+    const existing = doc.data() as Hunt;
+
+    if (existing.ongoing || existing.closedAt) {
+      return {
+        success: false,
+        error: "Only hunts that haven't started yet can be edited.",
+      };
+    }
+
+    await ref.update({
+      startsAt: hunt.startsAt.toISOString(),
+      deadline: hunt.deadline.toISOString(),
+      clues: hunt.clues,
+      entryCode: hunt.entryCode,
+      prizeAmount: hunt.prizeAmount,
+      mapLatitude: hunt.mapLatitude,
+      mapLongitude: hunt.mapLongitude,
+      mapZoom: hunt.mapZoom,
+      circleLatitude: hunt.circleLatitude ?? FieldValue.delete(),
+      circleLongitude: hunt.circleLongitude ?? FieldValue.delete(),
+      circleRadius: hunt.circleRadius ?? FieldValue.delete(),
+      locationNote: hunt.locationNote || FieldValue.delete(),
+    });
+  } catch (error) {
+    console.error("Failed to update hunt:", error);
     return { success: false, error: "Failed to save the hunt. Please try again." };
   }
 

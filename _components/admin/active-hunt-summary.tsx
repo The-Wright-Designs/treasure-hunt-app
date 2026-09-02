@@ -3,6 +3,7 @@ import { ActiveHuntAdminView } from "@/_types/past-hunt-types";
 import { formatDeadlineLabel } from "@/_lib/utils/format-deadline";
 import { getFirestoreConsoleUrl } from "@/_lib/utils/firestore-console-url";
 import CloseHuntButton from "@/_components/admin/close-hunt-button";
+import ViewCluesButton from "@/_components/admin/view-clues-button";
 
 interface Props {
   hunt: ActiveHuntAdminView | null;
@@ -48,6 +49,12 @@ const ActiveHuntSummary = ({ hunt }: Props) => {
               {hunt.id}
             </Link>
           </p>
+
+          <ViewCluesButton
+            clues={hunt.clues}
+            huntId={hunt.id}
+            cssClasses="mt-1.5"
+          />
 
           {overdue && (
             <>

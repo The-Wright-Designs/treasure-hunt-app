@@ -32,6 +32,7 @@ export interface QueuedHuntView {
   deadline: string;
   prizeAmount: number;
   clueCount: number;
+  clues: string[];
   entryCode: string;
   mapLatitude: number;
   mapLongitude: number;
@@ -48,6 +49,7 @@ export interface ActiveHuntAdminView {
   deadline: string;
   prizeAmount: number;
   clueCount: number;
+  clues: string[];
   entryCode: string;
   activeHunters: number;
   completedCount: number;
