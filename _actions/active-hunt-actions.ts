@@ -4,7 +4,11 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { FieldValue } from "firebase-admin/firestore";
 import { adminAuth, adminDb } from "@/_lib/firebase-admin";
+import { distanceInMeters } from "@/_lib/utils/geo-distance";
 import { Hunt, ActiveHuntView } from "@/_types/past-hunt-types";
+
+const LOCATION_ACCURACY_BUFFER = 200;
+const DEFAULT_CIRCLE_RADIUS = 200;
 
 async function getUid(): Promise<string | null> {
   const session = (await cookies()).get("session")?.value;
@@ -16,6 +20,23 @@ async function getUid(): Promise<string | null> {
   } catch {
     return null;
   }
+}
+
+async function getDeviceId(): Promise<string> {
+  const cookieStore = await cookies();
+  const existing = cookieStore.get("deviceId")?.value;
+  if (existing) return existing;
+
+  const deviceId = crypto.randomUUID();
+  cookieStore.set("deviceId", deviceId, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 60 * 60 * 24 * 365,
+    path: "/",
+    sameSite: "lax",
+  });
+
+  return deviceId;
 }
 
 export async function getActiveHunt(): Promise<ActiveHuntView | null> {
@@ -130,6 +151,12 @@ export async function submitHuntEntry(
     return { success: false, error: "Please enter the code you found." };
   }
 
+  const latitudeInput = formData.get("latitude")?.toString().trim() ?? "";
+  const longitudeInput = formData.get("longitude")?.toString().trim() ?? "";
+  const latitude = latitudeInput === "" ? NaN : Number(latitudeInput);
+  const longitude = longitudeInput === "" ? NaN : Number(longitudeInput);
+  const deviceId = await getDeviceId();
+
   const ref = adminDb.collection("hunts").doc(huntId);
 
   try {
@@ -163,6 +190,40 @@ export async function submitHuntEntry(
       };
     }
 
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+      return {
+        success: false,
+        error:
+          "We couldn't confirm your location. Please allow location access and try again.",
+      };
+    }
+
+    const centreLatitude = hunt.circleLatitude ?? hunt.mapLatitude;
+    const centreLongitude = hunt.circleLongitude ?? hunt.mapLongitude;
+    const allowedRadius =
+      (hunt.circleRadius ?? DEFAULT_CIRCLE_RADIUS) + LOCATION_ACCURACY_BUFFER;
+
+    const distance = distanceInMeters(
+      latitude,
+      longitude,
+      centreLatitude,
+      centreLongitude,
+    );
+
+    if (distance > allowedRadius) {
+      return {
+        success: false,
+        error: "You need to be at the hunt location to enter the code.",
+      };
+    }
+
+    if (hunt.completedDevices?.includes(deviceId)) {
+      return {
+        success: false,
+        error: "This device has already been used to complete this hunt.",
+      };
+    }
+
     if (!hunt.entryCode || entryCode !== hunt.entryCode) {
       return {
         success: false,
@@ -170,7 +231,10 @@ export async function submitHuntEntry(
       };
     }
 
-    await ref.update({ completedBy: FieldValue.arrayUnion(uid) });
+    await ref.update({
+      completedBy: FieldValue.arrayUnion(uid),
+      completedDevices: FieldValue.arrayUnion(deviceId),
+    });
   } catch (error) {
     console.error("Failed to submit hunt entry:", error);
     return {

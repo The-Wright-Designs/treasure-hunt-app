@@ -5,6 +5,7 @@ export interface Hunt {
   entryCode: string;
   participants: string[];
   completedBy: string[];
+  completedDevices?: string[];
   winner: string | null;
   deadline: string;
   closedAt?: string;

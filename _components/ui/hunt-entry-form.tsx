@@ -13,9 +13,39 @@ interface Props {
   cssClasses?: string;
 }
 
+async function submitWithLocation(
+  prevState: { success: boolean; error?: string },
+  formData: FormData,
+): Promise<{ success: boolean; error?: string }> {
+  const position = await new Promise<GeolocationPosition | null>((resolve) => {
+    if (!navigator.geolocation) {
+      resolve(null);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (result) => resolve(result),
+      () =>
+        navigator.geolocation.getCurrentPosition(
+          (result) => resolve(result),
+          () => resolve(null),
+          { enableHighAccuracy: false, timeout: 15000, maximumAge: 300000 },
+        ),
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+    );
+  });
+
+  if (position) {
+    formData.set("latitude", position.coords.latitude.toString());
+    formData.set("longitude", position.coords.longitude.toString());
+  }
+
+  return submitHuntEntry(prevState, formData);
+}
+
 const HuntEntryForm = ({ huntId, entered, cssClasses }: Props) => {
   const [entryCode, setEntryCode] = useState("");
-  const [state, formAction] = useActionState(submitHuntEntry, {
+  const [state, formAction] = useActionState(submitWithLocation, {
     success: false,
   });
 
