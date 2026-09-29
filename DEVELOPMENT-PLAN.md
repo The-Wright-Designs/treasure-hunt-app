@@ -72,24 +72,24 @@ These two ship as one unit — the share button without a working preview is hal
 There is a single hunt-wide `entryCode` and unlimited guesses in [active-hunt-actions.ts](_actions/active-hunt-actions.ts). The rules text on the active-hunt page threatens disqualification for code-sharing — the code's secrecy is load-bearing for fairness — while the action lets any joined participant brute-force it. Codes like `TEAL-4471` are short.
 
 - Track attempts in a separate `huntAttempts/{huntId}_{uid}` doc as `{ count, windowStart }`. **Do not** put a per-user map on the hunt doc — `submitHuntEntry` already does read-then-`update` with no transaction, and that would turn a hot document into a contention point.
-- Increment on **failed code match only**, before returning "That code isn't right". Allow ~10 attempts/hour, then a friendly cooldown message. Don't count session-expiry, already-entered, or not-joined rejections.
+- Increment on **failed code match only**, before returning "That code isn't right". Allow 5 attempts/hour, then a friendly cooldown message. Don't count session-expiry, already-entered, or not-joined rejections.
 - No existing rate-limit utility to copy — July's `ad6ed48` fix was purely client-side in `verify-email-banner.tsx`. This is a genuinely new server-side pattern, hence the full hour.
 
 While in this file: confirm the `await new Promise(r => setTimeout(r, 1000))` in `joinHunt` is an intentional UX beat and not leftover debug code. `join-hunt-button.tsx` has no `useFormStatus` pending state, so the button currently looks broken for that full second — add pending state either way (~10 min).
 
-### 5. De-hardcode the prize amount — 30min — ⬜ NOT STARTED
+### 5. De-hardcode the prize amount — 30min — ✅ DONE
 
 `prizeAmount = 500` is hardcoded in [admin-actions.ts:222](_actions/admin-actions.ts#L222) even though `Hunt` stores it per-hunt and every view type already carries it. "R500" is also hardcoded twice in prose in [active-hunt/page.tsx](app/(dashboard)/active-hunt/page.tsx) — at line ~27 and in rule 9 — on a page where `activeHunt.prizeAmount` is in scope. The day a sponsor funds an R1000 hunt, the app shows R500 to every hunter with no way to fix it.
 
 Add a `prizeAmount` field to [hunt-form.tsx](_components/admin/hunt-form.tsx), validate in `createHunt` (positive integer, sane ceiling), and interpolate `activeHunt.prizeAmount` into both prose strings. `HuntCard` already receives the prop and is already correct.
 
-### 6. Drive-by cleanups — 15min — ⬜ NOT STARTED
+### 6. Drive-by cleanups — 15min — ✅ DONE
 
 - Delete the dead `heroSlider` key from [general-data.json](_data/general-data.json) — nothing imports it and the referenced images don't exist.
 - Add `"typecheck": "tsc --noEmit"` to `package.json` scripts. Type errors currently only surface during `next build`.
 - ~~Correct `CLAUDE.md` re: announcements location.~~ **Stale — no action needed.** `CLAUDE.md:29` already states announcements live in Firestore, not `general-data.json`.
 
-### 7. PWA manifest + icons — 1h, only if 1–6 are genuinely done — ⬜ NOT STARTED
+### 7. PWA manifest + icons — 1h — ✅ DONE
 
 A mobile-first app with a fixed bottom tab bar that can't be installed to a home screen leaves its most natural retention mechanic on the table. `app/manifest.ts` (`display: "standalone"`, `theme_color: "#E37434"`, `background_color: "#FFFFFF"`, `start_url: "/dashboard"`) plus `app/icon.png` and `app/apple-icon.png` derived from the existing logo. Next's file conventions handle the `<link>` tags.
 
@@ -104,11 +104,11 @@ Last because it's a second-session-onward benefit, not a tonight's-hunt benefit.
 | 1 | Geolocation on hunt map | 3h | ✅ Done |
 | 2 | loading / error / not-found boundaries | 1.5h | ✅ Done |
 | 3 | WhatsApp share + OG image | 1h | ✅ Done |
-| 4 | Rate-limit `submitHuntEntry` (+ join button pending state) | 1h | ⬜ |
-| 5 | Per-hunt prize amount | 0.5h | ⬜ |
-| 6 | Drive-by cleanups | 0.25h | ⬜ |
-| 7 | PWA manifest + icons | 1h | ⬜ |
-| | **Total** | **8.25h** | **4.5h done / 3.75h left** |
+| 4 | Rate-limit `submitHuntEntry` (+ join button pending state) | 1h | ✅ Done |
+| 5 | Per-hunt prize amount | 0.5h | ✅ Done |
+| 6 | Drive-by cleanups | 0.25h | ✅ Done |
+| 7 | PWA manifest + icons | 1h | ✅ Done |
+| | **Total** | **8.25h** | **8.25h done / 0h left** |
 
 ~1.75h slack held back deliberately. Geolocation has real HTTPS/device-testing risk and is the item most likely to overrun. **If it does, cut item 7 first, then item 5. Never cut 1 or 2.**
 
@@ -139,6 +139,6 @@ Last because it's a second-session-onward benefit, not a tonight's-hunt benefit.
   - ⬜ **Still outstanding: test on a real handset over HTTPS.** Desktop/simulator positions come from WiFi/IP or are synthetic, so the core question — does the dot sit correctly inside vs outside the orange circle, and does the accuracy ring scale sensibly — is still unproven. Also still to check: deny the permission prompt and confirm the explanatory message renders instead of a dead map; navigate away and back and confirm no `watchPosition` leak.
 - **Boundaries:** ⬜ still to verify at runtime — temporarily throw in `getActiveHunt()` to confirm `error.tsx` renders with a working retry; hit a bad URL for `not-found.tsx`; throttle to Slow 3G in devtools to confirm the spinner appears on navigation. (Files are written and compile; behaviour not yet exercised.)
 - **Share:** open the share modal on a phone, tap WhatsApp, confirm it opens with prefilled text and that the pasted link previews with a real OG image (test with the WhatsApp link preview or an OG debugger).
-- **Rate limit:** submit a wrong entry code 11 times, confirm the cooldown message; confirm a correct code still works within the window and that already-entered/not-joined rejections don't consume attempts.
+- **Rate limit:** submit a wrong entry code 6 times, confirm the cooldown message; confirm a correct code still works within the window and that already-entered/not-joined rejections don't consume attempts.
 - **Prize:** create a hunt with a non-500 prize in admin, confirm the active-hunt page prose and card both show the new value.
 - Kill any dev server started during this work.

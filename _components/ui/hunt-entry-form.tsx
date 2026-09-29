@@ -14,9 +14,9 @@ interface Props {
 }
 
 async function submitWithLocation(
-  prevState: { success: boolean; error?: string },
+  prevState: { success: boolean; error?: string; lockedUntil?: number },
   formData: FormData,
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string; lockedUntil?: number }> {
   const position = await new Promise<GeolocationPosition | null>((resolve) => {
     if (!navigator.geolocation) {
       resolve(null);
@@ -67,6 +67,20 @@ const HuntEntryForm = ({ huntId, entered, cssClasses }: Props) => {
   const [state, formAction] = useActionState(submitWithLocation, {
     success: false,
   });
+  const [unlockedAt, setUnlockedAt] = useState<number>();
+  const locked = !!state.lockedUntil && unlockedAt !== state.lockedUntil;
+
+  useEffect(() => {
+    const lockedUntil = state.lockedUntil;
+    if (!lockedUntil) return;
+
+    const timer = setTimeout(
+      () => setUnlockedAt(lockedUntil),
+      Math.max(lockedUntil - Date.now(), 0),
+    );
+
+    return () => clearTimeout(timer);
+  }, [state.lockedUntil]);
 
   const requestLocation = () =>
     navigator.geolocation.getCurrentPosition(
@@ -136,7 +150,7 @@ const HuntEntryForm = ({ huntId, entered, cssClasses }: Props) => {
         autoComplete="off"
         value={entryCode}
         onChange={(e) => setEntryCode(e.target.value)}
-        disabled={!locationEnabled}
+        disabled={!locationEnabled || locked}
       />
 
       {!locationEnabled && (
@@ -147,12 +161,14 @@ const HuntEntryForm = ({ huntId, entered, cssClasses }: Props) => {
         </p>
       )}
 
-      {state.error && <p className="text-error text-[12px]">{state.error}</p>}
+      {state.error && (!state.lockedUntil || locked) && (
+        <p className="text-error text-[12px]">{state.error}</p>
+      )}
 
       {locationEnabled ? (
         <ButtonType
           colorTeal
-          disabled={entryCode.trim() === ""}
+          disabled={entryCode.trim() === "" || locked}
           cssClasses="self-start desktop:hover:cursor-pointer"
         >
           Submit entry

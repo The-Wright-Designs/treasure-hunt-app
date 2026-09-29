@@ -9,6 +9,8 @@ import { Hunt, ActiveHuntView } from "@/_types/past-hunt-types";
 
 const LOCATION_ACCURACY_BUFFER = 100;
 const DEFAULT_CIRCLE_RADIUS = 200;
+const MAX_ATTEMPTS = 5;
+const ATTEMPT_WINDOW = 60 * 60 * 1000;
 
 async function getUid(): Promise<string | null> {
   const session = (await cookies()).get("session")?.value;
@@ -131,9 +133,9 @@ export async function joinHunt(
 }
 
 export async function submitHuntEntry(
-  _prevState: { success: boolean; error?: string },
+  _prevState: { success: boolean; error?: string; lockedUntil?: number },
   formData: FormData,
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string; lockedUntil?: number }> {
   const uid = await getUid();
 
   if (!uid) {
@@ -224,7 +226,27 @@ export async function submitHuntEntry(
       };
     }
 
+    const attemptsRef = adminDb
+      .collection("huntAttempts")
+      .doc(`${huntId}_${uid}`);
+    const attempts = (await attemptsRef.get()).data();
+    const windowActive =
+      attempts && Date.now() - attempts.windowStart < ATTEMPT_WINDOW;
+
+    if (windowActive && attempts.count >= MAX_ATTEMPTS) {
+      return {
+        success: false,
+        error: "Too many wrong codes. Please wait an hour and try again.",
+        lockedUntil: attempts.windowStart + ATTEMPT_WINDOW,
+      };
+    }
+
     if (!hunt.entryCode || entryCode !== hunt.entryCode) {
+      await attemptsRef.set(
+        windowActive
+          ? { count: attempts.count + 1, windowStart: attempts.windowStart }
+          : { count: 1, windowStart: Date.now() },
+      );
       return {
         success: false,
         error: "That code isn't right. Make sure you've found the right item.",

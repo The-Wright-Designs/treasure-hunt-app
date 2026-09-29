@@ -70,6 +70,9 @@ const HuntForm = ({ hunt, onSaved }: Props) => {
   const [circleRadius, setCircleRadius] = useState(
     hunt ? optionalNumber(hunt.circleRadius) : "200",
   );
+  const [prizeAmount, setPrizeAmount] = useState(
+    String(hunt?.prizeAmount ?? 500),
+  );
   const [locationNote, setLocationNote] = useState(hunt?.locationNote ?? "");
   const [entryCode, setEntryCode] = useState(hunt?.entryCode ?? "");
   const [formKey, setFormKey] = useState(0);
@@ -119,12 +122,16 @@ const HuntForm = ({ hunt, onSaved }: Props) => {
 
   const validEntryCode = entryCode.trim().length >= 4;
 
+  const prize = Number(prizeAmount);
+  const validPrize = Number.isInteger(prize) && prize >= 1 && prize <= 1000;
+
   const canSubmit =
     validStartsAt &&
     validCoords &&
     (circleEmpty || validCircle) &&
     hasClue &&
-    validEntryCode;
+    validEntryCode &&
+    validPrize;
 
   const resetForm = () => {
     setClues([""]);
@@ -136,6 +143,7 @@ const HuntForm = ({ hunt, onSaved }: Props) => {
     setCircleLongitude("");
     setCircleRadius("200");
     setLocationNote("");
+    setPrizeAmount("500");
     setEntryCode("");
     setDismissed(true);
     setFormKey((prev) => prev + 1);
@@ -209,6 +217,25 @@ const HuntForm = ({ hunt, onSaved }: Props) => {
             ? `Runs 07:00 until 17:00 on ${formatDeadline(startsAt)}.`
             : "Hunts run from 07:00 Monday until 17:00 the following Sunday."}
         </p>
+      </div>
+
+      <div className="flex flex-col gap-[6px] w-full">
+        <NumberInput
+          label="Prize amount (R)"
+          name="prizeAmount"
+          required
+          min={1}
+          max={1000}
+          step={1}
+          placeholder="500"
+          value={prizeAmount}
+          onChange={(e) => setPrizeAmount(e.target.value)}
+        />
+        {prizeAmount !== "" && !validPrize && (
+          <p className="text-error text-[12px]">
+            Prize amount must be a whole number between R1 and R1000.
+          </p>
+        )}
       </div>
 
       <NumberInput

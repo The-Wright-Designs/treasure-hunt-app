@@ -24,7 +24,7 @@ const ActiveHuntPage = async () => {
             you&apos;ve tracked down the hidden item, enter the code printed on
             it to lock in your spot in the weekly draw. A random winner is
             selected at the end of each week and contacted directly to claim
-            their R500 prize.
+            their R{activeHunt.prizeAmount} prize.
           </p>
 
           <HuntCard
@@ -135,8 +135,9 @@ const ActiveHuntPage = async () => {
               </li>
               <li>
                 <p>
-                  Winners need to come in to claim their R500 cash prize in
-                  person, and must bring a parent or guardian along
+                  Winners need to come in to claim their R
+                  {activeHunt.prizeAmount} cash prize in person, and must bring
+                  a parent or guardian along
                 </p>
               </li>
               <li>

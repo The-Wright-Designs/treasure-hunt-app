@@ -278,7 +278,15 @@ function parseHuntForm(formData: FormData): ParseResult {
 
   const deadline = new Date(`${addDays(startsAtInput, 6)}T17:00:00+02:00`);
 
-  const prizeAmount = 500;
+  const prizeAmount = Number(formData.get("prizeAmount"));
+
+  if (!Number.isInteger(prizeAmount) || prizeAmount < 1 || prizeAmount > 1000) {
+    return {
+      valid: false,
+      error: "Prize amount must be a whole number between R1 and R1000.",
+    };
+  }
+
   const mapLatitude = Number(formData.get("mapLatitude"));
   const mapLongitude = Number(formData.get("mapLongitude"));
   const mapZoom = Number(formData.get("mapZoom"));
