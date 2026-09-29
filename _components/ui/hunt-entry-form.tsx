@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useActionState } from "react";
+import { useState, useEffect, useActionState } from "react";
 import classNames from "classnames";
 import { PartyPopper } from "lucide-react";
 import TextInput from "@/_components/ui/inputs/text-input";
@@ -43,11 +43,61 @@ async function submitWithLocation(
   return submitHuntEntry(prevState, formData);
 }
 
+function getBlockedInstructions() {
+  const ua = navigator.userAgent;
+  const isIos =
+    /iPhone|iPad|iPod/.test(ua) ||
+    (ua.includes("Macintosh") && navigator.maxTouchPoints > 1);
+
+  if (isIos) {
+    return 'Go to Settings > Privacy & Security > Location Services, make sure it\'s on, and set "Safari Websites" (or your browser) to "While Using the App". Then go to Settings > Apps > Safari > Location and choose "Ask" or "Allow". Then reload this page.';
+  }
+
+  if (/Android/.test(ua)) {
+    return "Tap the icon on the left of the address bar > Permissions > Location > Allow. Also make sure Location is switched on in your phone's quick settings. Then reload this page.";
+  }
+
+  return "Click the icon on the left of the address bar > Site settings > Location > Allow. Then reload this page.";
+}
+
 const HuntEntryForm = ({ huntId, entered, cssClasses }: Props) => {
   const [entryCode, setEntryCode] = useState("");
+  const [locationState, setLocationState] = useState<PermissionState>("prompt");
+  const locationEnabled = locationState === "granted";
   const [state, formAction] = useActionState(submitWithLocation, {
     success: false,
   });
+
+  const requestLocation = () =>
+    navigator.geolocation.getCurrentPosition(
+      () => setLocationState("granted"),
+      (error) =>
+        setLocationState(
+          error.code === error.PERMISSION_DENIED ? "denied" : "granted",
+        ),
+      { maximumAge: 60000, timeout: 15000 },
+    );
+
+  useEffect(() => {
+    requestLocation();
+
+    if (!navigator.permissions) return;
+
+    let status: PermissionStatus | undefined;
+
+    const update = (next: PermissionState) =>
+      setLocationState((prev) => (next === "prompt" ? prev : next));
+
+    navigator.permissions.query({ name: "geolocation" }).then((result) => {
+      status = result;
+      update(result.state);
+      result.onchange = () => update(result.state);
+    });
+
+    return () => {
+      if (status) status.onchange = null;
+    };
+  }, []);
 
   if (entered || state.success) {
     return (
@@ -86,17 +136,39 @@ const HuntEntryForm = ({ huntId, entered, cssClasses }: Props) => {
         autoComplete="off"
         value={entryCode}
         onChange={(e) => setEntryCode(e.target.value)}
+        disabled={!locationEnabled}
       />
+
+      {!locationEnabled && (
+        <p className="text-error text-[12px]">
+          {locationState === "prompt"
+            ? "Location must be enabled to enter the code. Tap the button below and allow location access."
+            : `Location must be enabled to enter the code. Location access is blocked for this site. ${getBlockedInstructions()}`}
+        </p>
+      )}
 
       {state.error && <p className="text-error text-[12px]">{state.error}</p>}
 
-      <ButtonType
-        colorTeal
-        disabled={entryCode.trim() === ""}
-        cssClasses="self-start desktop:hover:cursor-pointer"
-      >
-        Submit entry
-      </ButtonType>
+      {locationEnabled ? (
+        <ButtonType
+          colorTeal
+          disabled={entryCode.trim() === ""}
+          cssClasses="self-start desktop:hover:cursor-pointer"
+        >
+          Submit entry
+        </ButtonType>
+      ) : (
+        locationState === "prompt" && (
+          <ButtonType
+            type="button"
+            colorOrange
+            onClick={requestLocation}
+            cssClasses="self-start desktop:hover:cursor-pointer"
+          >
+            Enable location
+          </ButtonType>
+        )
+      )}
     </form>
   );
 };

@@ -15,7 +15,14 @@ export default function ShareModal({ cssClasses }: ShareModalProps) {
       )}
     >
       <h3 className="whitespace-nowrap">Share this app with your friends</h3>
-      <Link href="#" className="p-2 -m-2 desktop:hover:cursor-pointer">
+      <Link
+        href={`https://wa.me/?text=${encodeURIComponent(
+          "Join the Plett treasure hunt! https://www.treasure-hunt-app.com",
+        )}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="p-2 -m-2 desktop:hover:cursor-pointer"
+      >
         <Image
           src="/icons/whatsapp.svg"
           alt="Share on WhatsApp"

@@ -7,7 +7,7 @@ import { adminAuth, adminDb } from "@/_lib/firebase-admin";
 import { distanceInMeters } from "@/_lib/utils/geo-distance";
 import { Hunt, ActiveHuntView } from "@/_types/past-hunt-types";
 
-const LOCATION_ACCURACY_BUFFER = 200;
+const LOCATION_ACCURACY_BUFFER = 100;
 const DEFAULT_CIRCLE_RADIUS = 200;
 
 async function getUid(): Promise<string | null> {

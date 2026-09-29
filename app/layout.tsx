@@ -14,11 +14,6 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_ZA",
     siteName: "Treasure Hunt App",
-    images: [
-      {
-        url: "/open-graph-image.webp",
-      },
-    ],
   },
 };
 
