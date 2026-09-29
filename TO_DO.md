@@ -1,16 +1,7 @@
 # To Do
 
-## Build
-
-- [x] **5. Per-hunt prize amount (30 min)**
-  - Remove the hardcoded `prizeAmount = 500` in `_actions/admin-actions.ts` (~line 281)
-  - Add a prize field to `_components/admin/hunt-form.tsx` and validate it in `createHunt`
-  - Replace the hardcoded "R500" in `app/(dashboard)/active-hunt/page.tsx` (lines 27 and 138) with `activeHunt.prizeAmount`
-- [x] **6. Small cleanups (15 min)**
-  - Delete the unused `heroSlider` key from `_data/general-data.json`
-  - Add `"typecheck": "tsc --noEmit"` to `package.json` scripts
-- [x] **7. Install to home screen (1h)**
-  - Add `app/manifest.ts`, `app/icon.png` and `app/apple-icon.png`
+- [ ] **Real emergency numbers on `/contact`** (15 min): three entries in `_data/general-data.json` are placeholders. Do this first thing in September
+- [ ] Add new logo
 
 ## Test
 
@@ -28,9 +19,3 @@
   - The input and button lock, then unlock after the hour
 - [ ] **Prize:** create a hunt with a prize other than R500 and check it shows everywhere
 - [ ] **Lint:** fix the errors from `functions/lib/index.js` and the unused import warning in the profile page
-
-## Housekeeping
-
-- [ ] Commit the guess limit work
-- [ ] In `DEVELOPMENT-PLAN.md`, mark the join button spinner (item 4) as not needed, since it already has one
-- [ ] In `DEVELOPMENT-PLAN.md`, update the deferred admin editing item: editing is done (commit 9324ff0), but deleting hunts and a participant list are still open

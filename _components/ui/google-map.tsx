@@ -16,7 +16,7 @@ interface Props {
   cssClasses?: string;
 }
 
-const libraries: never[] = [];
+const libraries: "geometry"[] = ["geometry"];
 
 const DOT_RADIUS_PIXELS = 7;
 
@@ -46,6 +46,7 @@ const MapComponent = ({
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [locationStatus, setLocationStatus] = useState<string | null>(null);
   const [userPositionFound, setUserPositionFound] = useState(false);
+  const [distanceFromArea, setDistanceFromArea] = useState<number | null>(null);
 
   const resolvedCircleLat = circleLat ?? lat;
   const resolvedCircleLng = circleLng ?? lng;
@@ -97,6 +98,7 @@ const MapComponent = ({
     }
     lastPositionRef.current = null;
     setUserPositionFound(false);
+    setDistanceFromArea(null);
   }, []);
 
   useEffect(() => {
@@ -135,6 +137,14 @@ const MapComponent = ({
       userDotRef.current.setRadius(dotRadiusForZoom(map.getZoom()));
       lastPositionRef.current = userCenter;
 
+      const metresToCentre = google.maps.geometry.spherical.computeDistanceBetween(
+        userCenter,
+        { lat: resolvedCircleLat, lng: resolvedCircleLng },
+      );
+      setDistanceFromArea(
+        Math.round(Math.max(0, metresToCentre - resolvedCircleRadius)),
+      );
+
       setUserPositionFound(true);
       setLocationStatus(null);
     };
@@ -172,7 +182,14 @@ const MapComponent = ({
       zoomListener.remove();
       clearUserLocation();
     };
-  }, [map, showUserLocation, clearUserLocation]);
+  }, [
+    map,
+    showUserLocation,
+    clearUserLocation,
+    resolvedCircleLat,
+    resolvedCircleLng,
+    resolvedCircleRadius,
+  ]);
 
   const showHuntArea = useCallback(() => {
     if (!map) return;
@@ -262,6 +279,13 @@ const MapComponent = ({
         <p>
           Your browser can&apos;t share your location, so we can&apos;t show
           where you are on the map.
+        </p>
+      )}
+      {showUserLocation && distanceFromArea !== null && (
+        <p>
+          {distanceFromArea === 0
+            ? "You're inside the search area"
+            : `You're ${distanceFromArea} m from the search area`}
         </p>
       )}
       {showUserLocation && locationStatus && <p>{locationStatus}</p>}

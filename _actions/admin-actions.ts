@@ -192,6 +192,34 @@ export async function closeHuntNow(
   return { success: true };
 }
 
+export async function deleteQueuedHunt(
+  huntId: string,
+): Promise<{ success: boolean; error?: string }> {
+  if (!(await isAdmin())) {
+    return { success: false, error: "You are not authorised to do this." };
+  }
+
+  const ref = adminDb.collection("hunts").doc(huntId);
+  const doc = await ref.get();
+
+  if (!doc.exists) {
+    return { success: false, error: "That hunt no longer exists." };
+  }
+
+  const hunt = doc.data() as Hunt;
+
+  if (hunt.ongoing || hunt.closedAt) {
+    return { success: false, error: "Only queued hunts can be deleted." };
+  }
+
+  await ref.delete();
+
+  revalidatePath("/admin");
+  revalidatePath("/active-hunt");
+
+  return { success: true };
+}
+
 export async function updateHuntClues(
   _prevState: { success: boolean; error?: string },
   formData: FormData,

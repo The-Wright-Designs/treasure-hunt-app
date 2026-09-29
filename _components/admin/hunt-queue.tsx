@@ -4,6 +4,7 @@ import { formatDeadlineLabel } from "@/_lib/utils/format-deadline";
 import { getFirestoreConsoleUrl } from "@/_lib/utils/firestore-console-url";
 import ViewCluesButton from "@/_components/admin/view-clues-button";
 import EditHuntButton from "@/_components/admin/edit-hunt-button";
+import DeleteHuntButton from "@/_components/admin/delete-hunt-button";
 
 interface Props {
   hunts: QueuedHuntView[];
@@ -49,6 +50,8 @@ const HuntQueue = ({ hunts }: Props) => {
                 <ViewCluesButton clues={hunt.clues} />
 
                 <EditHuntButton hunt={hunt} />
+
+                <DeleteHuntButton huntId={hunt.id} />
               </div>
             </li>
           ))}
