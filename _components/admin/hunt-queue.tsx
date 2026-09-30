@@ -5,6 +5,7 @@ import { getFirestoreConsoleUrl } from "@/_lib/utils/firestore-console-url";
 import ViewCluesButton from "@/_components/admin/view-clues-button";
 import EditHuntButton from "@/_components/admin/edit-hunt-button";
 import DeleteHuntButton from "@/_components/admin/delete-hunt-button";
+import EntryQrCode from "@/_components/admin/entry-qr-code";
 
 interface Props {
   hunts: QueuedHuntView[];
@@ -34,6 +35,9 @@ const HuntQueue = ({ hunts }: Props) => {
                   `${hunt.mapLatitude}, ${hunt.mapLongitude}`}
               </p>
               <p>Entry code: {hunt.entryCode || "—"}</p>
+              {hunt.entryType === "qr" && hunt.entryCode && (
+                <EntryQrCode huntId={hunt.id} entryCode={hunt.entryCode} />
+              )}
               <p>
                 Firestore ID:{" "}
                 <Link

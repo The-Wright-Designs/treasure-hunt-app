@@ -31,7 +31,7 @@ Items from the original client brief:
 | Sponsor logos on first visit only                                     | Done (remembered per browser)                                                  |
 | Dashboard: current hunt, safety tips, messages                        | Done. Admin announcements replace the proposed WordPress integration           |
 | Hunt screen: clues, Google Map with radius, rules, how the draw works | Done. Radius is set per hunt; the default is 200 m, not the 150 m in the brief |
-| Hidden item with a QR code **or** number                              | Number only (typed code). QR scanning not built (optional)                     |
+| Hidden item with a QR code **or** number                              | Done. Each hunt is set to a typed code or a QR code                            |
 | "Congratulations, you're in the draw" screen                          | Done                                                                           |
 | Random draw, names sent to client weekly                              | Done, automatically at close, by email                                         |
 | Winner collects with parent/guardian                                  | Stated in the rules; handled offline                                           |
@@ -108,7 +108,7 @@ Until they verify, users see a banner above every dashboard page with a resend b
 - **Active Hunt (`/active-hunt`):**
   - An intro, the hunt card and the full rules.
   - Before joining: a Join button.
-  - After joining: the clues, and a map showing the search circle, the player's live location and how far they are from the area, with "Hunt area" and "My location" buttons. Below that is the code entry form.
+  - After joining: the clues, and a map showing the search circle, the player's live location and how far they are from the area, with "Hunt area" and "My location" buttons. Below that is the code entry form: a text input for written-code hunts, or a **Scan QR code** button that opens the rear camera for QR hunts (scanning submits straight away, no typing fallback).
   - After a correct code: a congratulations panel replaces the clues and map.
 - **Achievements (`/achievements`):** every closed hunt the player joined, newest first. Each card shows the date, location, whether they completed it, the number of hunters, and a Winner badge if they won.
 - **Announcements (`/announcements`):** all announcements, newest first.
@@ -143,7 +143,9 @@ Teens registered on the app only. Each hunt runs 7 days. One entry per hunt. Sha
 
 If every check passes, the player is added to `completedBy` and the device to `completedDevices`. `completedBy` is the pool the winner is drawn from.
 
-On the client, the code input stays disabled until the browser grants location access. If access is blocked, the form shows device-specific instructions (iOS, Android, desktop). This only improves the experience; the server checks are what enforce the rules.
+For QR hunts the QR simply encodes `entryCode`, so a scan goes through exactly the same checks as a typed code.
+
+On the client, the code input (or Scan QR button) until the browser grants location access. If access is blocked, the form shows device-specific instructions (iOS, Android, desktop). This only improves the experience; the server checks are what enforce the rules.
 
 ---
 
@@ -159,10 +161,11 @@ Admins have the Firebase custom claim `admin: true`. It's set outside the app; t
   - A live map preview.
   - An optional location note (shown on achievements and in the owner email).
   - One or more clues.
-  - An entry code of at least 4 characters, stored in upper case.
+  - An entry type: **Written code** or **QR code**.
+  - An entry code of at least 4 characters, stored in upper case. For QR hunts this is the value the QR encodes.
 - **Needs Attention:** closed hunts whose owner email hasn't sent yet, each with a **Resend email** button.
 - **Active Hunt:**
-  - Shows the dates, prize, hunter and completion counts, and entry code.
+  - Shows the dates, prize, hunter and completion counts, and entry code. QR hunts also show the QR with a **Download QR** (PNG) button, as do queued QR hunts.
   - Actions: view or edit the clues, **Close hunt now** (asks for confirmation, then draws a winner and emails the owner), and a link to the hunt in the Firestore console.
 - **Queued Hunts:** each queued hunt can be edited (all fields) or deleted.
 - **Announcements:** create, edit and delete. The newest one appears on the dashboard.
@@ -181,6 +184,7 @@ Admins have the Firebase custom claim `admin: true`. It's set outside the app; t
 | Scheduling     | Firebase Functions v2 (`europe-west1`) calling the app's `/api/cron/*` routes                                      |
 | Email          | Nodemailer over SMTP (port 587, STARTTLS)                                                                          |
 | Maps           | Google Maps JavaScript API (`@react-google-maps/api`)                                                              |
+| QR codes       | `qrcode.react` (admin QR image) and `qr-scanner` (camera scanning on `/active-hunt`)                               |
 | Bot protection | reCAPTCHA v3                                                                                                       |
 | Monitoring     | Google Cloud Monitoring log-based metric and alert (§11)                                                           |
 
@@ -240,7 +244,7 @@ Route protection happens in the layouts. There is no middleware:
 | Collection                    | Fields                                                                                                                                                                                                                                                                                                    | Notes                                                        |
 | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
 | `users/{uid}`                 | `name`, `phone`, `email`, `emailVerified`, `dateOfBirth`, `school?`, `address?`, `parent?` (`name`, `email`, `phone`, `relationship`; under-18s only), `consent` (`status`: `pending`/`granted`/`self`, plus `emailSentAt?` or the grant record), `termsAcceptedAt`, `legalVersion`, `createdAt`                                                                                                                                                                                                                                  | Optional fields are only stored when given                   |
-| `hunts/{id}`                  | `ongoing`, `startsAt`, `deadline`, `clues[]`, `entryCode`, `prizeAmount`, `participants[]`, `completedBy[]`, `completedDevices?[]`, `winner` (uid or null), `closedAt?`, `notifiedAt?`, `mapLatitude`, `mapLongitude`, `mapZoom`, `circleLatitude?`, `circleLongitude?`, `circleRadius?`, `locationNote?` | Dates are ISO strings                                        |
+| `hunts/{id}`                  | `ongoing`, `startsAt`, `deadline`, `clues[]`, `entryCode`, `entryType?` (`"code"` or `"qr"`, missing = `"code"`), `prizeAmount`, `participants[]`, `completedBy[]`, `completedDevices?[]`, `winner` (uid or null), `closedAt?`, `notifiedAt?`, `mapLatitude`, `mapLongitude`, `mapZoom`, `circleLatitude?`, `circleLongitude?`, `circleRadius?`, `locationNote?` | Dates are ISO strings                                        |
 | `announcements/{id}`          | `heading`, `body`, `createdAt`                                                                                                                                                                                                                                                                            |                                                              |
 | `huntAttempts/{huntId}_{uid}` | `count`, `windowStart` (ms), `expiresAt` (Timestamp)                                                                                                                                                                                                                                                      | Wrong-guess limit. Cleaned up by a TTL policy on `expiresAt` |
 | `consentRequests/{sha256(token)}` | `uid`, `expiresAt` (Timestamp, +7 days) | Parental consent links. Needs a TTL policy on `expiresAt` (**not yet created**) |
@@ -397,7 +401,6 @@ Full detail is in `CLAUDE.md` and the developer's global instructions. In short:
 
 **Known limitations**
 
-- QR code scanning isn't built; players type the code in.
 - The optional sign-up fields are stored but not shown on the profile page or in the owner email.
 - Sponsor splash "seen" is stored per browser, so a new device shows it once more.
 - Location and device checks raise the bar but don't make cheating impossible: GPS can be spoofed and cookies cleared.

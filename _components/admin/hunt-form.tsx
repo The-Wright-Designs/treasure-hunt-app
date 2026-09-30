@@ -75,6 +75,7 @@ const HuntForm = ({ hunt, onSaved }: Props) => {
   );
   const [locationNote, setLocationNote] = useState(hunt?.locationNote ?? "");
   const [entryCode, setEntryCode] = useState(hunt?.entryCode ?? "");
+  const [entryType, setEntryType] = useState(hunt?.entryType ?? "code");
   const [formKey, setFormKey] = useState(0);
   const [dismissed, setDismissed] = useState(false);
   const [state, formAction] = useActionState(hunt ? updateHunt : createHunt, {
@@ -145,6 +146,7 @@ const HuntForm = ({ hunt, onSaved }: Props) => {
     setLocationNote("");
     setPrizeAmount("500");
     setEntryCode("");
+    setEntryType("code");
     setDismissed(true);
     setFormKey((prev) => prev + 1);
   };
@@ -374,6 +376,18 @@ const HuntForm = ({ hunt, onSaved }: Props) => {
         </button>
       </div>
 
+      <SelectInput
+        label="Entry type"
+        name="entryType"
+        required
+        value={entryType}
+        onChange={(e) => setEntryType(e.target.value as "code" | "qr")}
+        options={[
+          { label: "Written code", value: "code" },
+          { label: "QR code", value: "qr" },
+        ]}
+      />
+
       <div className="flex flex-col gap-[6px] w-full">
         <TextInput
           label="Entry code"
@@ -389,8 +403,9 @@ const HuntForm = ({ hunt, onSaved }: Props) => {
           </p>
         )}
         <p className="text-[12px]">
-          Print this on the hidden item. Hunters type it in to lock in their
-          entry, so keep it secret until the hunt goes live.
+          {entryType === "qr"
+            ? "This is encoded into the QR code. Print the QR from the hunt queue and put it on the hidden item. Hunters scan it rather than type it."
+            : "Print this on the hidden item. Hunters type it in to lock in their entry, so keep it secret until the hunt goes live."}
         </p>
       </div>
 

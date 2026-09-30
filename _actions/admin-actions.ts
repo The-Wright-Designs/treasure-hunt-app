@@ -57,6 +57,7 @@ export async function getQueuedHunts(): Promise<QueuedHuntView[]> {
         clueCount: hunt.clues?.length ?? 0,
         clues: hunt.clues ?? [],
         entryCode: hunt.entryCode ?? "",
+        entryType: hunt.entryType ?? "code",
         mapLatitude: hunt.mapLatitude,
         mapLongitude: hunt.mapLongitude,
         mapZoom: hunt.mapZoom,
@@ -91,6 +92,7 @@ export async function getActiveHuntAdmin(): Promise<ActiveHuntAdminView | null> 
     clueCount: hunt.clues?.length ?? 0,
     clues: hunt.clues ?? [],
     entryCode: hunt.entryCode ?? "",
+    entryType: hunt.entryType ?? "code",
     activeHunters: hunt.participants?.length ?? 0,
     completedCount: hunt.completedBy?.length ?? 0,
     mapLatitude: hunt.mapLatitude,
@@ -282,6 +284,7 @@ interface ParsedHunt {
   locationNote: string;
   clues: string[];
   entryCode: string;
+  entryType: "code" | "qr";
 }
 
 type ParseResult =
@@ -406,6 +409,8 @@ function parseHuntForm(formData: FormData): ParseResult {
     };
   }
 
+  const entryType = formData.get("entryType") === "qr" ? "qr" : "code";
+
   return {
     valid: true,
     hunt: {
@@ -421,6 +426,7 @@ function parseHuntForm(formData: FormData): ParseResult {
       locationNote,
       clues,
       entryCode,
+      entryType,
     },
   };
 }
@@ -448,6 +454,7 @@ export async function createHunt(
       deadline: hunt.deadline.toISOString(),
       clues: hunt.clues,
       entryCode: hunt.entryCode,
+      entryType: hunt.entryType,
       prizeAmount: hunt.prizeAmount,
       mapLatitude: hunt.mapLatitude,
       mapLongitude: hunt.mapLongitude,
@@ -522,6 +529,7 @@ export async function updateHunt(
       deadline: hunt.deadline.toISOString(),
       clues: hunt.clues,
       entryCode: hunt.entryCode,
+      entryType: hunt.entryType,
       prizeAmount: hunt.prizeAmount,
       mapLatitude: hunt.mapLatitude,
       mapLongitude: hunt.mapLongitude,

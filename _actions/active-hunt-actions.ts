@@ -64,6 +64,7 @@ export async function getActiveHunt(): Promise<ActiveHuntView | null> {
     activeHunters: hunt.participants?.length ?? 0,
     joined: hunt.participants?.includes(uid) ?? false,
     entered: hunt.completedBy?.includes(uid) ?? false,
+    entryType: hunt.entryType ?? "code",
     clues: hunt.clues ?? [],
     mapLatitude: hunt.mapLatitude,
     mapLongitude: hunt.mapLongitude,

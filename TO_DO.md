@@ -17,10 +17,6 @@
 - [ ] Delete the old test accounts (they have no consent record, so they see "Registration incomplete" and can't join hunts)
 - [ ] **Test end to end:** register as a 15-year-old with a real parent inbox → email arrives → banner shows and join is refused → give consent → join works. Also check that decline deletes the account, an expired or reused link shows "Link expired", and an 18-year-old skips the parent step
 
-## QR code option
-
-- Not built. The notes say "QR code or number", and typing the number is covered, so this is optional.
-
 - [ ] **Real emergency numbers on `/contact`** (15 min): three entries in `_data/general-data.json` are placeholders. Do this first thing in September
 - [ ] Add new logo
 
@@ -34,6 +30,10 @@
   - Force an error to check the error page and its retry button
   - Visit a bad URL to check the not-found page
   - Slow the connection to check the loading spinner shows
+- [ ] **QR hunt:** on a real phone over HTTPS
+  - Create a QR hunt, download the QR from the admin queue and print or display it
+  - "Scan QR code" opens the rear camera and a scan enters the draw
+  - Denying camera access shows the explanation message
 - [ ] **WhatsApp share:** from a phone, the message is filled in and the link shows the preview image
 - [ ] **Guess limit**
   - After 5 wrong codes, the 6th try shows the wait message

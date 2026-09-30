@@ -1,15 +1,18 @@
 "use client";
 
-import { useState, useEffect, useActionState } from "react";
+import { useState, useEffect, useRef, useActionState } from "react";
+import { flushSync } from "react-dom";
 import classNames from "classnames";
 import { PartyPopper } from "lucide-react";
 import TextInput from "@/_components/ui/inputs/text-input";
 import ButtonType from "@/_components/ui/buttons/button-type";
+import QrScanner from "@/_components/ui/qr-scanner";
 import { submitHuntEntry } from "@/_actions/active-hunt-actions";
 
 interface Props {
   huntId: string;
   entered: boolean;
+  entryType: "code" | "qr";
   cssClasses?: string;
 }
 
@@ -60,11 +63,14 @@ function getBlockedInstructions() {
   return "Click the icon on the left of the address bar > Site settings > Location > Allow. Then reload this page.";
 }
 
-const HuntEntryForm = ({ huntId, entered, cssClasses }: Props) => {
+const HuntEntryForm = ({ huntId, entered, entryType, cssClasses }: Props) => {
   const [entryCode, setEntryCode] = useState("");
+  const [scanning, setScanning] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+  const isQr = entryType === "qr";
   const [locationState, setLocationState] = useState<PermissionState>("prompt");
   const locationEnabled = locationState === "granted";
-  const [state, formAction] = useActionState(submitWithLocation, {
+  const [state, formAction, isPending] = useActionState(submitWithLocation, {
     success: false,
   });
   const [unlockedAt, setUnlockedAt] = useState<number>();
@@ -81,6 +87,14 @@ const HuntEntryForm = ({ huntId, entered, cssClasses }: Props) => {
 
     return () => clearTimeout(timer);
   }, [state.lockedUntil]);
+
+  const handleScan = (value: string) => {
+    flushSync(() => {
+      setEntryCode(value);
+      setScanning(false);
+    });
+    formRef.current?.requestSubmit();
+  };
 
   const requestLocation = () =>
     navigator.geolocation.getCurrentPosition(
@@ -137,27 +151,44 @@ const HuntEntryForm = ({ huntId, entered, cssClasses }: Props) => {
 
   return (
     <form
+      ref={formRef}
       action={formAction}
       className={classNames("flex flex-col gap-5", cssClasses)}
     >
       <input type="hidden" name="huntId" value={huntId} />
 
-      <TextInput
-        label="Found the item? Enter the code on it"
-        name="entryCode"
-        required
-        placeholder="TEAL-4471"
-        autoComplete="off"
-        value={entryCode}
-        onChange={(e) => setEntryCode(e.target.value)}
-        disabled={!locationEnabled || locked}
-      />
+      {isQr ? (
+        <>
+          <input type="hidden" name="entryCode" value={entryCode} />
+          <p className="text-subheading">
+            Found the item? Scan the QR code on it
+          </p>
+          {scanning && (
+            <QrScanner
+              onScan={handleScan}
+              onCancel={() => setScanning(false)}
+            />
+          )}
+          {isPending && <p>Checking your code...</p>}
+        </>
+      ) : (
+        <TextInput
+          label="Found the item? Enter the code on it"
+          name="entryCode"
+          required
+          placeholder="TEAL-4471"
+          autoComplete="off"
+          value={entryCode}
+          onChange={(e) => setEntryCode(e.target.value)}
+          disabled={!locationEnabled || locked}
+        />
+      )}
 
       {!locationEnabled && (
         <p className="text-error text-[12px]">
           {locationState === "prompt"
-            ? "Location must be enabled to enter the code. Tap the button below and allow location access."
-            : `Location must be enabled to enter the code. Location access is blocked for this site. ${getBlockedInstructions()}`}
+            ? `Location must be enabled to ${isQr ? "scan" : "enter"} the code. Tap the button below and allow location access.`
+            : `Location must be enabled to ${isQr ? "scan" : "enter"} the code. Location access is blocked for this site. ${getBlockedInstructions()}`}
         </p>
       )}
 
@@ -166,13 +197,27 @@ const HuntEntryForm = ({ huntId, entered, cssClasses }: Props) => {
       )}
 
       {locationEnabled ? (
-        <ButtonType
-          colorTeal
-          disabled={entryCode.trim() === "" || locked}
-          cssClasses="self-start desktop:hover:cursor-pointer"
-        >
-          Submit entry
-        </ButtonType>
+        isQr ? (
+          !scanning && (
+            <ButtonType
+              type="button"
+              colorTeal
+              onClick={() => setScanning(true)}
+              disabled={locked || isPending}
+              cssClasses="self-start desktop:hover:cursor-pointer"
+            >
+              Scan QR code
+            </ButtonType>
+          )
+        ) : (
+          <ButtonType
+            colorTeal
+            disabled={entryCode.trim() === "" || locked}
+            cssClasses="self-start desktop:hover:cursor-pointer"
+          >
+            Submit entry
+          </ButtonType>
+        )
       ) : (
         locationState === "prompt" && (
           <ButtonType

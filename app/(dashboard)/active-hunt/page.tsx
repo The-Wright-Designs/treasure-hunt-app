@@ -47,6 +47,7 @@ const ActiveHuntPage = async () => {
               <HuntEntryForm
                 huntId={activeHunt.id}
                 entered={activeHunt.entered}
+                entryType={activeHunt.entryType}
               />
 
               {!activeHunt.entered && (

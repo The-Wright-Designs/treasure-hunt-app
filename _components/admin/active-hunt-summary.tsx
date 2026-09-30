@@ -4,6 +4,7 @@ import { formatDeadlineLabel } from "@/_lib/utils/format-deadline";
 import { getFirestoreConsoleUrl } from "@/_lib/utils/firestore-console-url";
 import CloseHuntButton from "@/_components/admin/close-hunt-button";
 import ViewCluesButton from "@/_components/admin/view-clues-button";
+import EntryQrCode from "@/_components/admin/entry-qr-code";
 
 interface Props {
   hunt: ActiveHuntAdminView | null;
@@ -38,6 +39,9 @@ const ActiveHuntSummary = ({ hunt }: Props) => {
             {hunt.locationNote ?? `${hunt.mapLatitude}, ${hunt.mapLongitude}`}
           </p>
           <p>Entry code: {hunt.entryCode || "—"}</p>
+          {hunt.entryType === "qr" && hunt.entryCode && (
+            <EntryQrCode huntId={hunt.id} entryCode={hunt.entryCode} />
+          )}
           <p>
             Firestore ID:{" "}
             <Link

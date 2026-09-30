@@ -3,6 +3,7 @@ export interface Hunt {
   startsAt: string;
   clues: string[];
   entryCode: string;
+  entryType?: "code" | "qr";
   participants: string[];
   completedBy: string[];
   completedDevices?: string[];
@@ -36,6 +37,7 @@ export interface QueuedHuntView {
   clueCount: number;
   clues: string[];
   entryCode: string;
+  entryType: "code" | "qr";
   mapLatitude: number;
   mapLongitude: number;
   mapZoom: number;
@@ -53,6 +55,7 @@ export interface ActiveHuntAdminView {
   clueCount: number;
   clues: string[];
   entryCode: string;
+  entryType: "code" | "qr";
   activeHunters: number;
   completedCount: number;
   mapLatitude: number;
@@ -82,6 +85,7 @@ export interface ActiveHuntView {
   activeHunters: number;
   joined: boolean;
   entered: boolean;
+  entryType: "code" | "qr";
   clues: string[];
   mapLatitude: number;
   mapLongitude: number;
