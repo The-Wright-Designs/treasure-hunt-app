@@ -2,7 +2,7 @@
 
 This is the source of truth for what the app is, how it works and where it stands. Update it in the same change as any code or setup it describes. See [Maintaining this document](#16-maintaining-this-document).
 
-Last updated: 30 September 2026
+Last updated: 1 October 2026
 
 ---
 
@@ -277,7 +277,10 @@ Shared hunt logic lives in `_lib/utils/hunt-notify.ts`:
 - **Failure alerting** is set up in Google Cloud (project `treasure-hunt-app-ef86f`), not in code:
   - The log-based counter metric `hunt_cron_errors` (label `job`) counts `resource.type="cloud_run_revision"` entries with `service_name` `closehunts` or `openhunts` and `severity>=ERROR`.
   - The alert policy **Hunt cron errors** (Critical) fires when the 5-minute sum is above 0 and emails the developer (channel "Chad"). It auto-closes after 30 minutes.
-  - **Not covered:** a failed owner email, and an empty queue on Monday. Both still return 200. The admin Needs Attention list shows failed emails.
+  - Both routes still return 200 for these business-logic outcomes, but now log an `ERROR` line that feeds the same metric/alert:
+    - **No hunt queued:** `close-hunts` checks at 17:00 and 19:00 SAST (the hunt-close run and 2 hours later) whether anything is queued for next Monday; `open-hunts` checks at 07:05, 08:05 and 09:05 SAST (the open run and the next two hourly runs) whether a hunt was due to open. Either logs `console.error` if the queue is empty.
+    - **Failed owner email:** `close-hunts` logs `console.error` for each hunt whose notification email fails during the hourly retry sweep. The admin Needs Attention list also shows these.
+  - Because both cron jobs run hourly, a persisting failure re-triggers the alert roughly every hour until it's resolved.
   - **To test:** write an ERROR log entry with that resource through the Logging API `entries.write` "Try this method" panel.
 
 ---

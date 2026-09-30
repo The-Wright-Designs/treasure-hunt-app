@@ -1,7 +1,3 @@
-## Alerts for no queued hunt & failed owner email
-
-- Nobody is alerted if no hunt is queued for the coming Monday, or if the owner email fails.
-
 ## Privacy policy / T&Cs for minors
 
 - The rules say the hunt is for teens only and pays a cash prize. There is no privacy policy, no terms page, no age check and no parental-consent checkbox at sign-up. Under POPIA, processing children's data needs parental consent. This probably matters more than any code item before launch.

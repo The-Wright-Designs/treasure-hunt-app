@@ -3,6 +3,16 @@ import { sendHuntClosedEmail } from "@/_actions/send-hunt-closed-email";
 import { HuntParticipant } from "@/_lib/utils/email-templates/hunt-closed-email-template";
 import { Hunt } from "@/_types/past-hunt-types";
 
+export async function hasQueuedHunt(): Promise<boolean> {
+  const snapshot = await adminDb
+    .collection("hunts")
+    .where("ongoing", "==", false)
+    .orderBy("startsAt", "asc")
+    .get();
+
+  return snapshot.docs.some((doc) => !doc.data().closedAt);
+}
+
 export function pickWinner(hunt: Hunt): string | null {
   const completedBy = hunt.completedBy ?? [];
 

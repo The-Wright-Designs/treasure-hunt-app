@@ -1,5 +1,9 @@
 import { adminDb } from "@/_lib/firebase-admin";
-import { pickWinner, notifyHuntClosed } from "@/_lib/utils/hunt-notify";
+import {
+  pickWinner,
+  notifyHuntClosed,
+  hasQueuedHunt,
+} from "@/_lib/utils/hunt-notify";
 import { Hunt } from "@/_types/past-hunt-types";
 
 export const dynamic = "force-dynamic";
@@ -61,8 +65,22 @@ export async function GET(request: Request) {
 
     for (const doc of sweep) {
       const sent = await notifyHuntClosed(doc.id, doc.data() as Hunt);
-      if (sent) notified++;
-      else failed++;
+      if (sent) {
+        notified++;
+      } else {
+        failed++;
+        console.error(`Owner email failed to send for hunt ${doc.id}`);
+      }
+    }
+
+    const nowDate = new Date();
+    if (
+      nowDate.getUTCDay() === 0 &&
+      (nowDate.getUTCHours() === 15 || nowDate.getUTCHours() === 17)
+    ) {
+      if (!(await hasQueuedHunt())) {
+        console.error("No hunt queued for next Monday");
+      }
     }
 
     return Response.json({
