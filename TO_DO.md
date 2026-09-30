@@ -1,6 +1,21 @@
 ## Privacy policy / T&Cs for minors
 
-- The rules say the hunt is for teens only and pays a cash prize. There is no privacy policy, no terms page, no age check and no parental-consent checkbox at sign-up. Under POPIA, processing children's data needs parental consent. This probably matters more than any code item before launch.
+`/privacy`, `/terms`, the age check (13–18) and the parental-consent email flow are built. Still to do before launch:
+
+- [ ] **Fill every `[PLACEHOLDER: …]` in `app/privacy/page.tsx` and `app/terms/page.tsx`.** They must not go live with gaps:
+  - Organiser's full legal name, contact email and phone
+  - Information Officer's name (and register them with the Information Regulator)
+  - Email provider name (the SMTP host)
+  - Winner-record retention period
+  - Whether relatives or employees of the organiser and sponsors may enter
+  - Prize collection office address
+  - Days allowed to claim a prize, and whether an unclaimed prize is redrawn or forfeited
+  - The sponsors' role (funding the prize, hosting collection)
+- [ ] **Have a South African attorney review both documents**, including whether the hunt counts as a promotional competition under Consumer Protection Act s36
+- [ ] Bump `LEGAL_VERSION` / `LEGAL_UPDATED` in `_lib/utils/legal-version.ts` whenever the text changes
+- [ ] **Firebase console:** add a TTL policy on `consentRequests.expiresAt`
+- [ ] Delete the old test accounts (they have no consent record, so they see "Registration incomplete" and can't join hunts)
+- [ ] **Test end to end:** register as a 15-year-old with a real parent inbox → email arrives → banner shows and join is refused → give consent → join works. Also check that decline deletes the account, an expired or reused link shows "Link expired", and an 18-year-old skips the parent step
 
 ## QR code option
 

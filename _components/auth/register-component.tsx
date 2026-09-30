@@ -13,27 +13,35 @@ import Link from "next/link";
 import { Check, X } from "lucide-react";
 import { auth } from "@/_lib/firebase-client";
 import { createSession, verifyAuthRecaptcha } from "@/_actions/auth-actions";
+import { requestParentalConsent } from "@/_actions/consent-actions";
+import { ageFromDateOfBirth, isEligibleAge } from "@/_lib/utils/age";
+import { RELATIONSHIPS } from "@/_types/consent-types";
 import TextInput from "@/_components/ui/inputs/text-input";
 import PhoneInput from "@/_components/ui/inputs/phone-input";
-import NumberInput from "@/_components/ui/inputs/number-input";
 import EmailInput from "@/_components/ui/inputs/email-input";
+import SelectInput from "@/_components/ui/inputs/select-input";
 import ButtonType from "@/_components/ui/buttons/button-type";
 import logo from "@/public/logo/treasure-hunt-app-logo.png";
 
 const RegisterComponent = () => {
   const router = useRouter();
   const { executeRecaptcha } = useGoogleReCaptcha();
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [values, setValues] = useState({
     name: "",
     phone: "",
     email: "",
-    age: "",
+    dateOfBirth: "",
     school: "",
     address: "",
+    parentName: "",
+    parentEmail: "",
+    parentPhone: "",
+    parentRelationship: RELATIONSHIPS[0],
     password: "",
     confirmPassword: "",
   });
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [passwordError, setPasswordError] = useState("");
   const [error, setError] = useState("");
   const [transitioning, setTransitioning] = useState(false);
@@ -48,12 +56,36 @@ const RegisterComponent = () => {
 
   const allRulesMet = Object.values(passwordRules).every(Boolean);
 
+  const age = ageFromDateOfBirth(values.dateOfBirth);
+  const needsParent = age < 18;
+
   const step1Valid =
     values.name.trim().length >= 2 &&
     /^(\+27|0)[6-8][0-9]{8}$/.test(values.phone) &&
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email);
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email) &&
+    isEligibleAge(age);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const parentEmailMatches =
+    values.parentEmail.trim().toLowerCase() === values.email.trim().toLowerCase();
+
+  const step2Valid =
+    acceptedTerms &&
+    (!needsParent ||
+      (values.parentName.trim().length >= 2 &&
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.parentEmail) &&
+        !parentEmailMatches &&
+        /^(\+27|0)[6-8][0-9]{8}$/.test(values.parentPhone)));
+
+  const goToStep = async (next: 1 | 2 | 3) => {
+    setTransitioning(true);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    setTransitioning(false);
+    setStep(next);
+  };
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
     setValues((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     if (e.target.name === "confirmPassword" || e.target.name === "password") {
       setPasswordError("");
@@ -99,19 +131,23 @@ const RegisterComponent = () => {
                 onChange={handleChange}
                 disabled={registering}
               />
-              <NumberInput
-                label="Age (optional)"
-                name="age"
-                placeholder="Age"
-                min={1}
-                max={119}
-                step={1}
-                value={values.age}
+              <TextInput
+                label="Date of birth"
+                name="dateOfBirth"
+                type="date"
+                required
+                autoComplete="bday"
+                value={values.dateOfBirth}
                 onChange={handleChange}
                 disabled={registering}
+                error={
+                  values.dateOfBirth && !isEligibleAge(age)
+                    ? "The treasure hunt is only open to players aged 13 to 18."
+                    : ""
+                }
               />
               <TextInput
-                label="School (optional)"
+                label="School (optional, for future safety support)"
                 name="school"
                 placeholder="School"
                 value={values.school}
@@ -119,7 +155,7 @@ const RegisterComponent = () => {
                 disabled={registering}
               />
               <TextInput
-                label="Address (optional)"
+                label="Address (optional, for future safety support)"
                 name="address"
                 placeholder="Address"
                 autoComplete="street-address"
@@ -127,6 +163,85 @@ const RegisterComponent = () => {
                 onChange={handleChange}
                 disabled={registering}
               />
+            </>
+          ) : step === 2 ? (
+            <>
+              {needsParent && (
+                <>
+                  <div className="flex flex-col gap-1">
+                    <h3>Parent or guardian</h3>
+                    <p className="text-[12px]">
+                      Because you&apos;re under 18, we&apos;ll email your parent
+                      or guardian to ask for their consent before you can join
+                      a hunt.
+                    </p>
+                  </div>
+                  <TextInput
+                    label="Parent or guardian's name"
+                    name="parentName"
+                    placeholder="Full name"
+                    required
+                    value={values.parentName}
+                    onChange={handleChange}
+                    disabled={registering}
+                  />
+                  <SelectInput
+                    label="Relationship to you"
+                    name="parentRelationship"
+                    required
+                    options={RELATIONSHIPS.map((relationship) => ({
+                      label: relationship,
+                      value: relationship,
+                    }))}
+                    value={values.parentRelationship}
+                    onChange={handleChange}
+                    disabled={registering}
+                  />
+                  <EmailInput
+                    label="Parent or guardian's email"
+                    name="parentEmail"
+                    placeholder="Email"
+                    required
+                    value={values.parentEmail}
+                    onChange={handleChange}
+                    disabled={registering}
+                  />
+                  {values.parentEmail && parentEmailMatches && (
+                    <p className="text-error text-[12px] -mt-3">
+                      This must be your parent or guardian&apos;s own email,
+                      not yours.
+                    </p>
+                  )}
+                  <PhoneInput
+                    label="Parent or guardian's phone number"
+                    name="parentPhone"
+                    placeholder="Phone number"
+                    required
+                    value={values.parentPhone}
+                    onChange={handleChange}
+                    disabled={registering}
+                  />
+                </>
+              )}
+              <label className="flex gap-3 items-start">
+                <input
+                  type="checkbox"
+                  checked={acceptedTerms}
+                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  disabled={registering}
+                  className="mt-1 shrink-0 accent-orange desktop:hover:cursor-pointer"
+                />
+                <span className="text-[12px]">
+                  I have read and agree to the{" "}
+                  <Link href="/terms" target="_blank">
+                    Terms &amp; Conditions
+                  </Link>{" "}
+                  and{" "}
+                  <Link href="/privacy" target="_blank">
+                    Privacy Policy
+                  </Link>
+                </span>
+              </label>
             </>
           ) : (
             <>
@@ -192,17 +307,32 @@ const RegisterComponent = () => {
         {step === 1 ? (
           <ButtonType
             type="button"
-            onClick={async () => {
-              setTransitioning(true);
-              await new Promise((resolve) => setTimeout(resolve, 1000));
-              setTransitioning(false);
-              setStep(2);
-            }}
+            onClick={() => goToStep(2)}
             cssClasses="w-full"
             disabled={!step1Valid || transitioning}
           >
             {transitioning ? <div className="spinner" /> : "Next"}
           </ButtonType>
+        ) : step === 2 ? (
+          <>
+            <ButtonType
+              type="button"
+              onClick={() => goToStep(3)}
+              cssClasses="w-full"
+              disabled={!step2Valid || transitioning}
+            >
+              {transitioning ? <div className="spinner" /> : "Next"}
+            </ButtonType>
+            <ButtonType
+              type="button"
+              colorGrey
+              secondary
+              onClick={() => setStep(1)}
+              cssClasses="w-full"
+            >
+              Back
+            </ButtonType>
+          </>
         ) : (
           <>
             <ButtonType
@@ -243,10 +373,19 @@ const RegisterComponent = () => {
                   }
                   const idToken = await credential.user.getIdToken(true);
                   await createSession(idToken, values.phone, {
-                    age: values.age,
+                    dateOfBirth: values.dateOfBirth,
                     school: values.school,
                     address: values.address,
+                    ...(needsParent && {
+                      parent: {
+                        name: values.parentName,
+                        email: values.parentEmail,
+                        phone: values.parentPhone,
+                        relationship: values.parentRelationship,
+                      },
+                    }),
                   });
+                  if (needsParent) await requestParentalConsent();
                   router.push("/dashboard");
                 } catch (err) {
                   const message = err instanceof Error ? err.message : "";
@@ -276,7 +415,7 @@ const RegisterComponent = () => {
               type="button"
               colorGrey
               secondary
-              onClick={() => setStep(1)}
+              onClick={() => setStep(2)}
               cssClasses="w-full"
             >
               Back
@@ -286,6 +425,10 @@ const RegisterComponent = () => {
         )}
         <p className="text-[12px]">
           Already a member? <Link href="/login">Login here</Link>
+        </p>
+        <p className="text-[12px]">
+          <Link href="/privacy">Privacy Policy</Link> ·{" "}
+          <Link href="/terms">Terms &amp; Conditions</Link>
         </p>
         <p className="text-[10px] text-black/50 text-center">
           This site is protected by reCAPTCHA and the Google{" "}

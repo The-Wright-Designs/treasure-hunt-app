@@ -2,6 +2,7 @@ export interface HuntParticipant {
   name: string;
   phone: string;
   email: string;
+  parent?: string;
 }
 
 export interface HuntClosedEmailProps {
@@ -108,8 +109,13 @@ export const huntClosedEmailTemplate = ({
           winner.email
             ? `<a href="mailto:${escapeHtml(winner.email)}" style="color: #FFFFFF;">${escapeHtml(winner.email)}</a>`
             : "No email address on file"
-        }</p>
-        <p style="margin: 0; font-size: 0.875rem; color: #FFFFFF;">Please contact them to arrange the ${formatPrize(prizeAmount)} prize.</p>`
+        }</p>${
+          winner.parent
+            ? `
+        <p style="margin: 0 0 1rem 0; font-size: 1rem; color: #FFFFFF;">Parent or guardian: ${escapeHtml(winner.parent)}</p>`
+            : ""
+        }
+        <p style="margin: 0; font-size: 0.875rem; color: #FFFFFF;">Please contact them to arrange the ${formatPrize(prizeAmount)} prize. ${winner.parent ? "The parent or guardian named above must attend with their ID." : ""}</p>`
     : `
         <p style="margin: 0 0 0.75rem 0; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #FFFFFF;">Winner</p>
         <p style="margin: 0 0 0.5rem 0; font-size: 1.5rem; font-weight: 600; line-height: 1.1; color: #FFFFFF;">No winner</p>

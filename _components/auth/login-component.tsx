@@ -162,6 +162,10 @@ const LoginComponent = ({ notice }: { notice?: string }) => {
             <p className="text-[12px]">
               Not a member? <Link href="/register">Register here</Link>
             </p>
+            <p className="text-[12px]">
+              <Link href="/privacy">Privacy Policy</Link> ·{" "}
+              <Link href="/terms">Terms &amp; Conditions</Link>
+            </p>
             <p className="text-[10px] text-black/50 text-center">
               This site is protected by reCAPTCHA and the Google{" "}
               <Link

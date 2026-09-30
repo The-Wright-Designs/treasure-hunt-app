@@ -24,6 +24,16 @@
       "title": "Contact",
       "url": "/contact",
       "icon": "Phone"
+    },
+    {
+      "title": "Privacy Policy",
+      "url": "/privacy",
+      "icon": "LockKeyhole"
+    },
+    {
+      "title": "Terms & Conditions",
+      "url": "/terms",
+      "icon": "ScrollText"
     }
   ],
   "footerNav": [

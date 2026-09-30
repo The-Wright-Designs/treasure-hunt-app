@@ -68,8 +68,23 @@ Only one hunt can be live at a time. If a hunt is still live, `open-hunts` does 
 
 ### Sign-up and login (`/register`, `/login`)
 
-- **Register** has two steps. Step 1 asks for name, SA phone number (`0` or `+27`, then 6–8, then 8 digits) and email, plus optional age, school and address. Step 2 asks for a password, which must contain upper-case, lower-case, a number and a special character, and a confirmation.
-- A verification email is sent on sign-up.
+- **Register** has three steps:
+  1. Name, SA phone number (`0` or `+27`, then 6–8, then 8 digits), email and **date of birth** (required; only ages 13–18 are allowed, computed in SAST by `_lib/utils/age.ts`), plus optional school and address, which are labelled as being for future safety support.
+  2. For under-18s: the **parent or guardian's** name, relationship (Mother / Father / Legal guardian), email (must differ from the teen's) and SA phone. Everyone ticks a box accepting the Terms and Privacy Policy.
+  3. A password, which must contain upper-case, lower-case, a number and a special character, and a confirmation.
+- A verification email is sent on sign-up. For under-18s, a **parental consent email** is also sent to the parent (see below).
+- `/privacy` and `/terms` are public pages, linked from login, register, the header menu and the consent page. Both show `LEGAL_UPDATED` from `_lib/utils/legal-version.ts`.
+
+### Parental consent
+
+- Under-18 accounts are created with `consent.status: "pending"`; 18-year-olds get `"self"`. The registration fields are only written once. `createSession` ignores `details` if the doc already has `consent`, so a pending teen can't re-submit an adult date of birth.
+- `requestParentalConsent()` creates a random token, stores `consentRequests/{sha256(token)} = { uid, expiresAt (+7 days) }`, deleting any earlier request, and emails the parent a `/consent/{token}` link. Resending has a 60-second server-side cooldown (`consent.emailSentAt`).
+- On `/consent/[token]` (public, noindex, no-referrer), the parent reads a summary, ticks four boxes (guardian, privacy, terms, prize collection with ID) and types their name:
+  - **Give consent** replaces `consent` with `{ status: "granted", grantedAt, signedName, ip, userAgent, legalVersion }` and deletes the request.
+  - **Decline** deletes the account through `deleteUserData`.
+- Until consent is granted, the dashboard shows `ParentalConsentBanner` (resend and re-check). `joinHunt` and `submitHuntEntry` refuse unless the status is `granted` or `self`. Admins are exempt. An account with no consent record, such as an old test account or one whose registration was interrupted, sees "Registration incomplete" instead.
+- `close-hunts` deletes up to 10 `pending` users per run whose `createdAt` is more than 7 days old.
+- The in-person check happens only at **prize collection**: the owner email's winner panel shows the parent's name, relationship and phone, and the parent must bring ID.
 - Login has a "Forgot password" flow that uses Firebase's reset email.
 - reCAPTCHA v3 runs on login, register and password reset. The score must be at least 0.6.
 - A logged-in user who visits `/login` is sent to `/dashboard`. `/` always redirects to `/login`.
@@ -117,7 +132,7 @@ Teens registered on the app only. Each hunt runs 7 days. One entry per hunt. Sha
 
 `submitHuntEntry` checks the following on the server, in this order. The first failure returns a friendly error.
 
-1. Session is valid, **and the email is verified**
+1. Session is valid, **the email is verified**, and **parental consent is `granted` or `self`** (admins are exempt). `joinHunt` checks the same things.
 2. Hunt exists, is live, and its deadline hasn't passed
 3. The player hasn't already completed this hunt
 4. The player has joined this hunt
@@ -175,10 +190,11 @@ Admins have the Firebase custom claim `admin: true`. It's set outside the app; t
 
 ```
 app/                Routes: (auth) login/register, (dashboard) player pages,
-                    (admin) admin page, api/cron/*, plus root layout, manifest,
+                    (admin) admin page, api/cron/*, public privacy, terms
+                    and consent/[token], plus root layout, manifest,
                     OG image, icons, global error and not-found
 _actions/           Server actions (auth, active hunt, achievements, admin,
-                    announcements, profile, hunt-closed email)
+                    announcements, consent, profile, hunt-closed email)
 _components/        UI by feature: admin/, auth/, layout/, navigation/, ui/
 _context/           Auth state, header menu, share modal
 _data/              Static JSON: nav, safety tips, contacts
@@ -196,6 +212,7 @@ Route protection happens in the layouts. There is no middleware:
 - `(dashboard)`: requires a valid session and passes `isAdmin` to the header.
 - `(admin)`: also requires the `admin` claim.
 - `(auth)`: public, and wrapped in the reCAPTCHA provider.
+- `/privacy`, `/terms` and `/consent/[token]` sit outside the groups and are public.
 
 ---
 
@@ -207,8 +224,10 @@ Route protection happens in the layouts. There is no middleware:
 - **Email change:** updates Firebase Auth with `emailVerified: false`, updates the users doc, deletes the session and sends the user to login. The verification banner then applies.
 - **Delete account** does the following, in order:
   1. Removes the user from any live hunt's `participants` and `completedBy`, so they can't win.
-  2. Deletes `users/{uid}`.
+  2. Deletes any `consentRequests` for the user, then `users/{uid}`.
   3. **Deletes** the Firebase user, so the email can register again.
+
+  This lives in `_lib/utils/delete-user-data.ts` (deliberately not a server action, since it takes a uid). The same code runs when a parent declines consent and in the 7-day cleanup of unconsented accounts.
 
   Closed hunts keep the uid in their history, and `completedDevices` keeps the device.
 
@@ -220,10 +239,11 @@ Route protection happens in the layouts. There is no middleware:
 
 | Collection                    | Fields                                                                                                                                                                                                                                                                                                    | Notes                                                        |
 | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| `users/{uid}`                 | `name`, `phone`, `email`, `emailVerified`, `age?`, `school?`, `address?`                                                                                                                                                                                                                                  | Optional fields are only stored when given                   |
+| `users/{uid}`                 | `name`, `phone`, `email`, `emailVerified`, `dateOfBirth`, `school?`, `address?`, `parent?` (`name`, `email`, `phone`, `relationship`; under-18s only), `consent` (`status`: `pending`/`granted`/`self`, plus `emailSentAt?` or the grant record), `termsAcceptedAt`, `legalVersion`, `createdAt`                                                                                                                                                                                                                                  | Optional fields are only stored when given                   |
 | `hunts/{id}`                  | `ongoing`, `startsAt`, `deadline`, `clues[]`, `entryCode`, `prizeAmount`, `participants[]`, `completedBy[]`, `completedDevices?[]`, `winner` (uid or null), `closedAt?`, `notifiedAt?`, `mapLatitude`, `mapLongitude`, `mapZoom`, `circleLatitude?`, `circleLongitude?`, `circleRadius?`, `locationNote?` | Dates are ISO strings                                        |
 | `announcements/{id}`          | `heading`, `body`, `createdAt`                                                                                                                                                                                                                                                                            |                                                              |
 | `huntAttempts/{huntId}_{uid}` | `count`, `windowStart` (ms), `expiresAt` (Timestamp)                                                                                                                                                                                                                                                      | Wrong-guess limit. Cleaned up by a TTL policy on `expiresAt` |
+| `consentRequests/{sha256(token)}` | `uid`, `expiresAt` (Timestamp, +7 days) | Parental consent links. Needs a TTL policy on `expiresAt` (**not yet created**) |
 
 **Hunt states:**
 
@@ -246,6 +266,7 @@ Types live in `_types/past-hunt-types.ts`. `Hunt` is the stored doc shape. The v
 | `profile-actions.ts`        | `getProfile`, `saveProfile`                                                                                                                                                               | Profile                                         |
 | `announcement-actions.ts`   | `getAnnouncements`, `createAnnouncement`, `updateAnnouncement`, `deleteAnnouncement`                                                                                                      | Dashboard, announcements, admin                 |
 | `admin-actions.ts`          | `isAdmin`, `getQueuedHunts`, `getActiveHuntAdmin`, `getClosedHuntsNeedingAttention`, `createHunt`, `updateHunt`, `updateHuntClues`, `deleteQueuedHunt`, `closeHuntNow`, `resendHuntEmail` | Admin                                           |
+| `consent-actions.ts`        | `requestParentalConsent`, `getConsentRequest`, `grantParentalConsent`, `declineParentalConsent` | Register, consent banner, `/consent/[token]` |
 | `send-hunt-closed-email.ts` | `sendHuntClosedEmail`                                                                                                                                                                     | `hunt-notify.ts`                                |
 | `app/api/cron/open-hunts`   | GET, requires `Authorization: Bearer CRON_SECRET`                                                                                                                                         | `openHunts` function                            |
 | `app/api/cron/close-hunts`  | GET, requires the same bearer token                                                                                                                                                       | `closeHunts` function                           |
@@ -363,8 +384,9 @@ Full detail is in `CLAUDE.md` and the developer's global instructions. In short:
 **Before Phase 1 sign-off**
 
 - Legal:
-  - There is no privacy policy, terms page, age check or parental consent at sign-up.
-  - The app targets under-18s and pays cash prizes, so POPIA requires parental consent for processing their data.
+  - `/privacy`, `/terms`, the 13–18 age check and parental consent are built, but **every `[PLACEHOLDER: …]` and gap in the privacy policy and terms must be filled before launch**: the organiser's legal name and contact details, the Information Officer, the email provider, the winner-record retention period, whether relatives or employees may enter, the prize collection office address, the prize claim period and what happens to unclaimed prizes, and the sponsors' role. See `TO_DO.md`.
+  - A South African attorney should review both documents, including Consumer Protection Act s36 (promotional competitions). The organiser must register an Information Officer with the Information Regulator.
+  - Create the TTL policy on `consentRequests.expiresAt`, and delete the old test accounts (they have no consent record).
 - Content:
   - Three `/contact` entries are placeholders.
   - The new logo hasn't been added yet.

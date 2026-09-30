@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { FieldValue } from "firebase-admin/firestore";
 import { adminAuth, adminDb } from "@/_lib/firebase-admin";
 import { distanceInMeters } from "@/_lib/utils/geo-distance";
+import { hasConsent } from "@/_lib/utils/consent";
 import { Hunt, ActiveHuntView } from "@/_types/past-hunt-types";
 
 const LOCATION_ACCURACY_BUFFER = 100;
@@ -93,6 +94,13 @@ export async function joinHunt(
     };
   }
 
+  if (decoded.admin !== true && !(await hasConsent(decoded.uid))) {
+    return {
+      success: false,
+      error: "Your parent or guardian needs to give consent before you can take part.",
+    };
+  }
+
   const uid = decoded.uid;
 
   const huntId = formData.get("huntId")?.toString() ?? "";
@@ -157,6 +165,13 @@ export async function submitHuntEntry(
     return {
       success: false,
       error: "Please verify your email before joining the hunt.",
+    };
+  }
+
+  if (decoded.admin !== true && !(await hasConsent(decoded.uid))) {
+    return {
+      success: false,
+      error: "Your parent or guardian needs to give consent before you can take part.",
     };
   }
 

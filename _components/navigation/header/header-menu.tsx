@@ -11,6 +11,8 @@ import {
   Phone,
   LogOut,
   ShieldPlus,
+  LockKeyhole,
+  ScrollText,
   LucideProps,
 } from "lucide-react";
 import { signOut } from "firebase/auth";
@@ -27,6 +29,8 @@ const iconMap: Record<string, React.ComponentType<LucideProps>> = {
   Megaphone,
   ShieldCheck,
   Phone,
+  LockKeyhole,
+  ScrollText,
 };
 
 interface MobileHeaderProps {

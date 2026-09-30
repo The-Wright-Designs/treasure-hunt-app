@@ -4,11 +4,14 @@ import {
   notifyHuntClosed,
   hasQueuedHunt,
 } from "@/_lib/utils/hunt-notify";
+import { deleteUserData } from "@/_lib/utils/delete-user-data";
 import { Hunt } from "@/_types/past-hunt-types";
 
 export const dynamic = "force-dynamic";
 
 const NOTIFY_LIMIT = 10;
+const DELETE_LIMIT = 10;
+const CONSENT_WINDOW = 7 * 24 * 60 * 60 * 1000;
 
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET;
@@ -73,6 +76,27 @@ export async function GET(request: Request) {
       }
     }
 
+    const consentCutoff = new Date(
+      Date.now() - CONSENT_WINDOW,
+    ).toISOString();
+    let deleted = 0;
+    try {
+      const pending = await adminDb
+        .collection("users")
+        .where("consent.status", "==", "pending")
+        .get();
+      const expired = pending.docs
+        .filter((doc) => (doc.data().createdAt ?? "") < consentCutoff)
+        .slice(0, DELETE_LIMIT);
+
+      for (const doc of expired) {
+        await deleteUserData(doc.id);
+        deleted++;
+      }
+    } catch (error) {
+      console.error("Failed to delete unconsented users:", error);
+    }
+
     const nowDate = new Date();
     if (
       nowDate.getUTCDay() === 0 &&
@@ -88,6 +112,7 @@ export async function GET(request: Request) {
       notified,
       failed,
       pending: unnotified.length - sweep.length,
+      deleted,
     });
   } catch (error) {
     console.error("Failed to close hunts:", error);

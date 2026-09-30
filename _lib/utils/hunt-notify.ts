@@ -44,12 +44,16 @@ export async function resolveParticipants(
         name?: string;
         phone?: string;
         email?: string;
+        parent?: { name?: string; phone?: string; relationship?: string };
       };
 
       resolved[uid] = {
         name: user.name || uid,
         phone: user.phone || "",
         email: user.email || "",
+        ...(user.parent && {
+          parent: `${user.parent.name ?? ""} (${user.parent.relationship ?? "Parent"}) ${user.parent.phone ?? ""}`.trim(),
+        }),
       };
 
       continue;
