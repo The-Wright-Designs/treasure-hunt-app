@@ -9,6 +9,11 @@ export const metadata: Metadata = {
   description: "An exciting treasure hunt application",
   keywords:
     "treasure hunt, adventure game, scavenger hunt, outdoor activity, treasure hunt app, family fun, exploration game, clue solving, geocaching, interactive adventure, puzzle hunt, team building, location-based game, hidden treasure, quest app",
+  appleWebApp: {
+    capable: true,
+    title: "Treasure Hunt",
+    statusBarStyle: "default",
+  },
   openGraph: {
     description: "An exciting treasure hunt application",
     type: "website",

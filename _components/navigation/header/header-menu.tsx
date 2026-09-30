@@ -19,6 +19,7 @@ import { useRouter } from "next/navigation";
 import { headerNav } from "@/_data/nav-data.json";
 import { auth } from "@/_lib/firebase-client";
 import { deleteSession } from "@/_actions/auth-actions";
+import InstallAppItem from "@/_components/navigation/header/install-app-item";
 
 const iconMap: Record<string, React.ComponentType<LucideProps>> = {
   CircleUser,
@@ -101,6 +102,7 @@ export default function HeaderMenu({
                 <span className="text-paragraph text-black">Logout</span>
               </button>
             </li>
+            <InstallAppItem cssClasses="mt-6" />
           </ul>
         </nav>
       </div>

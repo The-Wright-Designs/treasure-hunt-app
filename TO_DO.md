@@ -2,6 +2,8 @@
 
 - [ ] **Real emergency numbers on `/contact`** (15 min): three entries in `_data/general-data.json` are placeholders. Do this first thing in September
 - [ ] Add new logo
+- [ ] Add download button to slide out menu similar to Memory Boom
+- [ ] investigate what it will take to be a downloadable app in an app store
 
 ## Test
 
