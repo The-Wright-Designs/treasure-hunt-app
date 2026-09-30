@@ -12,7 +12,12 @@ interface Props {
 
 const CloseHuntButton = ({ huntId, cssClasses }: Props) => {
   const [state, formAction] = useActionState(
-    async () => closeHuntNow(huntId),
+    async () => {
+      if (!window.confirm("Close this hunt now and draw a winner? This cannot be undone.")) {
+        return { success: false } as { success: boolean; error?: string };
+      }
+      return closeHuntNow(huntId);
+    },
     { success: false } as { success: boolean; error?: string },
   );
 

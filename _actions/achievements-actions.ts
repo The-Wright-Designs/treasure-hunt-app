@@ -25,6 +25,7 @@ export async function getPastHunts(): Promise<PastHuntView[] | null> {
       completed: hunt.completedBy.includes(uid),
       noOfHunters: hunt.participants.length,
       winner: hunt.winner === uid,
+      locationNote: hunt.locationNote,
     };
   });
 }

@@ -25,6 +25,7 @@ export interface PastHuntView {
   completed: boolean;
   noOfHunters: number;
   winner: boolean;
+  locationNote?: string;
 }
 
 export interface QueuedHuntView {

@@ -6,6 +6,7 @@ interface PastHuntCardProps {
   completed: boolean;
   noOfHunters: number;
   winner?: boolean;
+  locationNote?: string;
   cssClasses?: string;
 }
 
@@ -27,6 +28,7 @@ const PastHuntCard = ({
   completed,
   noOfHunters,
   winner = false,
+  locationNote,
   cssClasses,
 }: PastHuntCardProps) => {
   return (
@@ -49,6 +51,12 @@ const PastHuntCard = ({
       </div>
 
       <div className="flex flex-col gap-1">
+        {locationNote && (
+          <div className="flex gap-[10px]">
+            <p className="text-white w-[140px] shrink-0">Location:</p>
+            <p className="text-white flex-1">{locationNote}</p>
+          </div>
+        )}
         <div className="flex gap-[10px]">
           <p className="text-white w-[140px] shrink-0">Completed:</p>
           <p className="text-white flex-1">{completed ? "Yes" : "No"}</p>

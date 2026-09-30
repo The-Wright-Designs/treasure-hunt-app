@@ -12,13 +12,12 @@ const DEFAULT_CIRCLE_RADIUS = 200;
 const MAX_ATTEMPTS = 5;
 const ATTEMPT_WINDOW = 60 * 60 * 1000;
 
-async function getUid(): Promise<string | null> {
+async function getSession() {
   const session = (await cookies()).get("session")?.value;
   if (!session) return null;
 
   try {
-    const decoded = await adminAuth.verifySessionCookie(session, true);
-    return decoded.uid;
+    return await adminAuth.verifySessionCookie(session, true);
   } catch {
     return null;
   }
@@ -42,7 +41,7 @@ async function getDeviceId(): Promise<string> {
 }
 
 export async function getActiveHunt(): Promise<ActiveHuntView | null> {
-  const uid = await getUid();
+  const uid = (await getSession())?.uid;
   if (!uid) return null;
 
   const snapshot = await adminDb
@@ -78,14 +77,23 @@ export async function joinHunt(
   _prevState: { success: boolean; error?: string },
   formData: FormData,
 ): Promise<{ success: boolean; error?: string }> {
-  const uid = await getUid();
+  const decoded = await getSession();
 
-  if (!uid) {
+  if (!decoded) {
     return {
       success: false,
       error: "Your session has expired. Please log in again.",
     };
   }
+
+  if (decoded.email_verified !== true) {
+    return {
+      success: false,
+      error: "Please verify your email before joining the hunt.",
+    };
+  }
+
+  const uid = decoded.uid;
 
   const huntId = formData.get("huntId")?.toString() ?? "";
 
@@ -136,14 +144,23 @@ export async function submitHuntEntry(
   _prevState: { success: boolean; error?: string; lockedUntil?: number },
   formData: FormData,
 ): Promise<{ success: boolean; error?: string; lockedUntil?: number }> {
-  const uid = await getUid();
+  const decoded = await getSession();
 
-  if (!uid) {
+  if (!decoded) {
     return {
       success: false,
       error: "Your session has expired. Please log in again.",
     };
   }
+
+  if (decoded.email_verified !== true) {
+    return {
+      success: false,
+      error: "Please verify your email before joining the hunt.",
+    };
+  }
+
+  const uid = decoded.uid;
 
   const huntId = formData.get("huntId")?.toString() ?? "";
   const entryCode =
@@ -242,11 +259,12 @@ export async function submitHuntEntry(
     }
 
     if (!hunt.entryCode || entryCode !== hunt.entryCode) {
-      await attemptsRef.set(
-        windowActive
-          ? { count: attempts.count + 1, windowStart: attempts.windowStart }
-          : { count: 1, windowStart: Date.now() },
-      );
+      const windowStart = windowActive ? attempts.windowStart : Date.now();
+      await attemptsRef.set({
+        count: windowActive ? attempts.count + 1 : 1,
+        windowStart,
+        expiresAt: new Date(windowStart + ATTEMPT_WINDOW),
+      });
       return {
         success: false,
         error: "That code isn't right. Make sure you've found the right item.",

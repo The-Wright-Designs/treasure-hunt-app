@@ -1,5 +1,6 @@
 import InfoCard from "@/_components/ui/cards/info-card";
 import HuntCard from "@/_components/ui/cards/active-hunt/hunt-card";
+import SponsorSplash from "@/_components/ui/sponsor-splash";
 import generalData from "@/_data/general-data.json";
 import { getActiveHunt } from "@/_actions/active-hunt-actions";
 import { getAnnouncements } from "@/_actions/announcement-actions";
@@ -14,6 +15,7 @@ const Dashboard = async () => {
 
   return (
     <div className="flex flex-col gap-10 px-5 pt-10">
+      <SponsorSplash />
       <h2>Dashboard</h2>
       <main className="flex flex-col gap-10">
         {activeHunt && (

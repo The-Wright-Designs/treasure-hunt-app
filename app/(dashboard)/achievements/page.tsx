@@ -23,6 +23,7 @@ const AchievementsPage = async () => {
               completed={hunt.completed}
               noOfHunters={hunt.noOfHunters}
               winner={hunt.winner}
+              locationNote={hunt.locationNote}
             />
           ))
         )}

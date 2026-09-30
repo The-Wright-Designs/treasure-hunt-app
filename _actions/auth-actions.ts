@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { FieldValue } from "firebase-admin/firestore";
 import { adminAuth, adminDb } from "@/_lib/firebase-admin";
 import { verifyRecaptchaToken } from "@/_lib/verify-recaptcha";
 
@@ -12,7 +13,14 @@ export async function verifyAuthRecaptcha(token: string) {
   }
 }
 
-export async function createSession(idToken: string, phone?: string) {
+export async function createSession(
+  idToken: string,
+  phone?: string,
+  details?: { age?: string; school?: string; address?: string },
+) {
+  const age = Number(details?.age);
+  const school = details?.school?.trim().slice(0, 200);
+  const address = details?.address?.trim().slice(0, 200);
   const expiresIn = 60 * 60 * 24 * 7 * 1000;
   const decoded = await adminAuth.verifyIdToken(idToken);
   const userRef = adminDb.collection("users").doc(decoded.uid);
@@ -23,6 +31,9 @@ export async function createSession(idToken: string, phone?: string) {
       ...(!existing?.email && { email: decoded.email ?? "" }),
       emailVerified: decoded.email_verified === true,
       ...(phone !== undefined && { phone }),
+      ...(Number.isInteger(age) && age > 0 && age < 120 && { age }),
+      ...(school && { school }),
+      ...(address && { address }),
     },
     { merge: true }
   );
@@ -69,7 +80,20 @@ export async function deleteAccount() {
   if (session) {
     try {
       const decoded = await adminAuth.verifySessionCookie(session);
-      await adminAuth.updateUser(decoded.sub, { disabled: true });
+      const ongoing = await adminDb
+        .collection("hunts")
+        .where("ongoing", "==", true)
+        .get();
+      await Promise.all(
+        ongoing.docs.map((doc) =>
+          doc.ref.update({
+            participants: FieldValue.arrayRemove(decoded.sub),
+            completedBy: FieldValue.arrayRemove(decoded.sub),
+          }),
+        ),
+      );
+      await adminDb.collection("users").doc(decoded.sub).delete();
+      await adminAuth.deleteUser(decoded.sub);
     } catch (error) {
       console.error("Account deletion failed:", error);
     }

@@ -96,7 +96,7 @@ export default function HeaderMenu({
             <li>
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 cursor-pointer"
+                className="flex items-center gap-2 desktop:hover:cursor-pointer"
               >
                 <LogOut size={20} color="#1D1D1D" />
                 <span className="text-paragraph text-black">Logout</span>

@@ -53,6 +53,8 @@ const LoginComponent = ({ notice }: { notice?: string }) => {
         setError(
           "Security check failed. Please refresh the page and try again.",
         );
+      } else if (message.includes("auth/user-disabled")) {
+        setError("This account has been disabled.");
       } else if (
         message.includes("auth/user-not-found") ||
         message.includes("auth/wrong-password") ||

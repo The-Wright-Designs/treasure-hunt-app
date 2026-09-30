@@ -17,7 +17,7 @@ const DeleteAccount = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-error">Are you sure? Your account will be disabled and you will be logged out.</p>
+      <p className="text-error">Are you sure? Your account and details will be permanently deleted, and you&apos;ll be removed from the current hunt.</p>
       <form action={deleteAccount}>
         <ButtonType colorOrange cssClasses="w-full">
           Confirm delete

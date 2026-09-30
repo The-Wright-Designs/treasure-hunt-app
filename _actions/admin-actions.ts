@@ -172,6 +172,11 @@ export async function closeHuntNow(
   }
 
   const hunt = doc.data() as Hunt;
+
+  if (!hunt.ongoing) {
+    return { success: false, error: "Only the active hunt can be closed." };
+  }
+
   const closedAt = new Date().toISOString();
   const winner = pickWinner(hunt);
 

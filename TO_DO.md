@@ -1,9 +1,17 @@
-# To Do
+## Alerts for no queued hunt & failed owner email
+
+- Nobody is alerted if no hunt is queued for the coming Monday, or if the owner email fails.
+
+## Privacy policy / T&Cs for minors
+
+- The rules say the hunt is for teens only and pays a cash prize. There is no privacy policy, no terms page, no age check and no parental-consent checkbox at sign-up. Under POPIA, processing children's data needs parental consent. This probably matters more than any code item before launch.
+
+## QR code option
+
+- Not built. The notes say "QR code or number", and typing the number is covered, so this is optional.
 
 - [ ] **Real emergency numbers on `/contact`** (15 min): three entries in `_data/general-data.json` are placeholders. Do this first thing in September
 - [ ] Add new logo
-- [ ] Add download button to slide out menu similar to Memory Boom
-- [ ] investigate what it will take to be a downloadable app in an app store
 
 ## Test
 

@@ -15,6 +15,7 @@ import { auth } from "@/_lib/firebase-client";
 import { createSession, verifyAuthRecaptcha } from "@/_actions/auth-actions";
 import TextInput from "@/_components/ui/inputs/text-input";
 import PhoneInput from "@/_components/ui/inputs/phone-input";
+import NumberInput from "@/_components/ui/inputs/number-input";
 import EmailInput from "@/_components/ui/inputs/email-input";
 import ButtonType from "@/_components/ui/buttons/button-type";
 import logo from "@/public/logo/treasure-hunt-app-logo.png";
@@ -27,6 +28,9 @@ const RegisterComponent = () => {
     name: "",
     phone: "",
     email: "",
+    age: "",
+    school: "",
+    address: "",
     password: "",
     confirmPassword: "",
   });
@@ -92,6 +96,34 @@ const RegisterComponent = () => {
                 placeholder="Email"
                 required
                 value={values.email}
+                onChange={handleChange}
+                disabled={registering}
+              />
+              <NumberInput
+                label="Age (optional)"
+                name="age"
+                placeholder="Age"
+                min={1}
+                max={119}
+                step={1}
+                value={values.age}
+                onChange={handleChange}
+                disabled={registering}
+              />
+              <TextInput
+                label="School (optional)"
+                name="school"
+                placeholder="School"
+                value={values.school}
+                onChange={handleChange}
+                disabled={registering}
+              />
+              <TextInput
+                label="Address (optional)"
+                name="address"
+                placeholder="Address"
+                autoComplete="street-address"
+                value={values.address}
                 onChange={handleChange}
                 disabled={registering}
               />
@@ -210,7 +242,11 @@ const RegisterComponent = () => {
                     );
                   }
                   const idToken = await credential.user.getIdToken(true);
-                  await createSession(idToken, values.phone);
+                  await createSession(idToken, values.phone, {
+                    age: values.age,
+                    school: values.school,
+                    address: values.address,
+                  });
                   router.push("/dashboard");
                 } catch (err) {
                   const message = err instanceof Error ? err.message : "";
