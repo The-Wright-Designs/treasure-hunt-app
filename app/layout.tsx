@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import "@/_styles/globals.css";
 import { AuthProvider } from "@/_context/auth-context";
+import VersionCheck from "@/_components/layout/version-check";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.treasure-hunt-app.com"),
@@ -41,6 +42,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
         <AuthProvider>{children}</AuthProvider>
+        <VersionCheck />
       </body>
     </html>
   );

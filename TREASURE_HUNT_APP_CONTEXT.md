@@ -337,6 +337,7 @@ Shared hunt logic lives in `_lib/utils/hunt-notify.ts`:
   - `app/manifest.ts`: standalone display, start page `/dashboard`, theme colour `#E37434`, and 192 px, 512 px and maskable icons.
   - `appleWebApp` metadata in the root layout.
   - An OG image generated in `app/opengraph-image.tsx`.
+  - No service worker, so every launch loads from the network. `_components/layout/version-check.tsx` (in the root layout) refreshes a backgrounded app after a deploy: when the page becomes visible it fetches `/api/version` and reloads if the id differs from its own `BUILD_ID` (`VERCEL_GIT_COMMIT_SHA`, inlined via `env` in `next.config.ts`). It does nothing locally, where `BUILD_ID` is empty.
 - **`next.config.ts`:**
   - `firebase-admin` is treated as an external server package.
   - Image `deviceSizes` are `[425, 800, 1280]`, matching the breakpoints.

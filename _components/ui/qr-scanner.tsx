@@ -12,6 +12,7 @@ interface Props {
 }
 
 const QrScanner = ({ onScan, onCancel, checking, cssClasses }: Props) => {
+  const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const onScanRef = useRef(onScan);
   const [error, setError] = useState(false);
@@ -19,6 +20,10 @@ const QrScanner = ({ onScan, onCancel, checking, cssClasses }: Props) => {
   useEffect(() => {
     onScanRef.current = onScan;
   }, [onScan]);
+
+  useEffect(() => {
+    containerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, []);
 
   useEffect(() => {
     let scanner: { stop: () => void; destroy: () => void } | undefined;
@@ -58,7 +63,10 @@ const QrScanner = ({ onScan, onCancel, checking, cssClasses }: Props) => {
   }, []);
 
   return (
-    <div className={classNames("flex flex-col gap-3", cssClasses)}>
+    <div
+      ref={containerRef}
+      className={classNames("flex flex-col gap-3", cssClasses)}
+    >
       {error ? (
         <p className="text-error text-[12px]">
           We couldn&apos;t open your camera. Allow camera access for this site

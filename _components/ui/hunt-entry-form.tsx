@@ -88,6 +88,14 @@ const HuntEntryForm = ({ huntId, entered, entryType, cssClasses }: Props) => {
     return () => clearTimeout(timer);
   }, [state.lockedUntil]);
 
+  const resultRef = useRef<HTMLDivElement & HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    if (state.success || state.error) {
+      resultRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [state]);
+
   const [wasPending, setWasPending] = useState(false);
   if (isPending !== wasPending) {
     setWasPending(isPending);
@@ -135,6 +143,7 @@ const HuntEntryForm = ({ huntId, entered, entryType, cssClasses }: Props) => {
   if (entered || state.success) {
     return (
       <div
+        ref={resultRef}
         className={classNames(
           "flex gap-5 items-center px-5 py-7 bg-teal rounded-[6px]",
           cssClasses,
@@ -198,7 +207,9 @@ const HuntEntryForm = ({ huntId, entered, entryType, cssClasses }: Props) => {
       )}
 
       {state.error && (!state.lockedUntil || locked) && (
-        <p className="text-error text-[12px]">{state.error}</p>
+        <p ref={resultRef} className="text-error text-[12px]">
+          {state.error}
+        </p>
       )}
 
       {locationEnabled ? (
