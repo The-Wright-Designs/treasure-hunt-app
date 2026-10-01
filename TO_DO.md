@@ -1,3 +1,11 @@
+## Registration delay for consent
+
+- Research adding forced delay between when a user registers and when they are allowed to enter a hunt. To prevent teens sharing out the location and registering with multiple devices within the hunt area.
+
+## Google map simplification
+
+- Reduce unnecessary google map options to make it more user friendly (ie: street view & directions & zoom buttons)
+
 ## Privacy policy / T&Cs for minors
 
 `/privacy`, `/terms`, the age check (13–18) and the parental-consent email flow are built. Still to do before launch:

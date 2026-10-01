@@ -31,7 +31,7 @@ const EntryQrCode = ({ huntId, entryCode, cssClasses }: Props) => {
         size={512}
         level="H"
         marginSize={4}
-        className="w-[160px] h-[160px]"
+        style={{ width: 160, height: 160 }}
       />
 
       <ButtonType

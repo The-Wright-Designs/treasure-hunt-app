@@ -32,7 +32,11 @@ const QrScanner = ({ onScan, onCancel, cssClasses }: Props) => {
           instance.stop();
           onScanRef.current(result.data);
         },
-        { preferredCamera: "environment", maxScansPerSecond: 5 },
+        {
+          preferredCamera: "environment",
+          maxScansPerSecond: 5,
+          highlightScanRegion: true,
+        },
       );
       scanner = instance;
 
@@ -56,12 +60,14 @@ const QrScanner = ({ onScan, onCancel, cssClasses }: Props) => {
           in your browser settings, then reload this page.
         </p>
       ) : (
-        <video
-          ref={videoRef}
-          muted
-          playsInline
-          className="w-full max-w-[400px] aspect-square object-cover rounded-[6px] bg-black"
-        />
+        <div className="relative w-full max-w-[400px] aspect-square rounded-[6px] overflow-hidden bg-black">
+          <video
+            ref={videoRef}
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        </div>
       )}
 
       <ButtonType

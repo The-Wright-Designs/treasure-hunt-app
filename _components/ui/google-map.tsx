@@ -2,7 +2,7 @@
 
 import { GoogleMap, useJsApiLoader } from "@react-google-maps/api";
 import classNames from "classnames";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ButtonType from "@/_components/ui/buttons/button-type";
 
 interface Props {
@@ -36,7 +36,7 @@ const MapComponent = ({
   showUserLocation,
   cssClasses,
 }: Props) => {
-  const center = { lat, lng };
+  const center = useMemo(() => ({ lat, lng }), [lat, lng]);
   const mapRef = useRef<google.maps.Map | null>(null);
   const circleRef = useRef<google.maps.Circle | null>(null);
   const userDotRef = useRef<google.maps.Circle | null>(null);
