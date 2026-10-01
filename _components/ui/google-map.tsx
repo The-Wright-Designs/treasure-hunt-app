@@ -252,6 +252,10 @@ const MapComponent = ({
         onUnmount={onUnmount}
         options={{
           mapId: "Treasure Hunt App",
+          streetViewControl: false,
+          zoomControl: false,
+          cameraControl: false,
+          clickableIcons: false,
         }}
       />
       {showUserLocation && (
