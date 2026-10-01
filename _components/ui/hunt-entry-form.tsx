@@ -88,10 +88,15 @@ const HuntEntryForm = ({ huntId, entered, entryType, cssClasses }: Props) => {
     return () => clearTimeout(timer);
   }, [state.lockedUntil]);
 
+  const [wasPending, setWasPending] = useState(false);
+  if (isPending !== wasPending) {
+    setWasPending(isPending);
+    if (!isPending) setScanning(false);
+  }
+
   const handleScan = (value: string) => {
     flushSync(() => {
       setEntryCode(value);
-      setScanning(false);
     });
     formRef.current?.requestSubmit();
   };
@@ -167,9 +172,9 @@ const HuntEntryForm = ({ huntId, entered, entryType, cssClasses }: Props) => {
             <QrScanner
               onScan={handleScan}
               onCancel={() => setScanning(false)}
+              checking={isPending}
             />
           )}
-          {isPending && <p>Checking your code...</p>}
         </>
       ) : (
         <TextInput
