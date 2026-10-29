@@ -92,6 +92,8 @@ Only one hunt can be live at a time. If a hunt is still live, `open-hunts` does 
 
 ### Email verification
 
+The verification email is sent through our own SMTP by `sendVerificationEmail()` in `auth-actions.ts`. It uses an Admin SDK `generateEmailVerificationLink` and the `verify-email-template.ts` template, with a 60-second server cooldown (`verificationSentAt` on the users doc). It is called after registration, from the banner's resend button, and on the first login after an email change.
+
 Until they verify, users see a banner above every dashboard page with a resend button (60-second cooldown). They can browse and see the active hunt, but **cannot join it or enter a code**. The banner detects verification by itself and refreshes the session. It links to Profile so a wrong email can be fixed.
 
 `close-hunts` deletes users (up to the same 10 per run, shared with the pending sweep) still unverified 7 days after `emailChangedAt ?? createdAt`, after confirming with Firebase Auth that they're unverified and not admins. This frees up typo'd emails.
@@ -246,7 +248,7 @@ Route protection happens in the layouts. There is no middleware:
 
 | Collection                    | Fields                                                                                                                                                                                                                                                                                                    | Notes                                                        |
 | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| `users/{uid}`                 | `name`, `phone`, `email`, `emailVerified`, `dateOfBirth`, `school?`, `address?`, `parent?` (`name`, `email`, `phone`, `relationship`; under-18s only), `consent` (`status`: `pending`/`granted`/`self`, plus `emailSentAt?` or the grant record), `termsAcceptedAt`, `legalVersion`, `createdAt`, `emailChangedAt?`                                                                                                                                                                                                                                  | Optional fields are only stored when given                   |
+| `users/{uid}`                 | `name`, `phone`, `email`, `emailVerified`, `dateOfBirth`, `school?`, `address?`, `parent?` (`name`, `email`, `phone`, `relationship`; under-18s only), `consent` (`status`: `pending`/`granted`/`self`, plus `emailSentAt?` or the grant record), `termsAcceptedAt`, `legalVersion`, `createdAt`, `emailChangedAt?`, `verificationSentAt?`                                                                                                                                                                                                                                  | Optional fields are only stored when given                   |
 | `hunts/{id}`                  | `ongoing`, `startsAt`, `deadline`, `clues[]`, `entryCode`, `entryType?` (`"code"` or `"qr"`, missing = `"code"`), `prizeAmount`, `participants[]`, `completedBy[]`, `completedDevices?[]`, `winner` (uid or null), `closedAt?`, `notifiedAt?`, `mapLatitude`, `mapLongitude`, `mapZoom`, `circleLatitude?`, `circleLongitude?`, `circleRadius?`, `locationNote?` | Dates are ISO strings                                        |
 | `announcements/{id}`          | `heading`, `body`, `createdAt`                                                                                                                                                                                                                                                                            |                                                              |
 | `huntAttempts/{huntId}_{uid}` | `count`, `windowStart` (ms), `expiresAt` (Timestamp)                                                                                                                                                                                                                                                      | Wrong-guess limit. Cleaned up by a TTL policy on `expiresAt` |
@@ -301,7 +303,7 @@ Shared hunt logic lives in `_lib/utils/hunt-notify.ts`:
   - A hunt overview: dates, prize, clue count, participant counts, and the location note or a map link.
   - A table of everyone who completed the hunt.
 
-  **Players receive no emails from the app** apart from Firebase's verification and password-reset emails.
+  **Players receive no emails from the app** apart from the verification email (sent through our SMTP) and Firebase's password-reset email.
 
 - **Failure alerting** is set up in Google Cloud (project `treasure-hunt-app-ef86f`), not in code:
   - The log-based counter metric `hunt_cron_errors` (label `job`) counts `resource.type="cloud_run_revision"` entries with `service_name` `closehunts` or `openhunts` and `severity>=ERROR`.

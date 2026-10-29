@@ -3,12 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { sendEmailVerification } from "firebase/auth";
-import { FirebaseError } from "firebase/app";
 import { MailWarning } from "lucide-react";
 import classNames from "classnames";
 import { useAuth } from "@/_context/auth-context";
-import { createSession } from "@/_actions/auth-actions";
+import { createSession, sendVerificationEmail } from "@/_actions/auth-actions";
 import ButtonType from "@/_components/ui/buttons/button-type";
 
 const VerifyEmailBanner = ({ cssClasses }: { cssClasses?: string }) => {
@@ -73,23 +71,13 @@ const VerifyEmailBanner = ({ cssClasses }: { cssClasses?: string }) => {
     setError("");
     setSent(false);
     setResending(true);
-    try {
-      await sendEmailVerification(user);
+    const result = await sendVerificationEmail();
+    if (result.success) {
       setSent(true);
-      setCooldown(60);
-    } catch (err) {
-      if (
-        err instanceof FirebaseError &&
-        err.code === "auth/too-many-requests"
-      ) {
-        setError(
-          "A link has already been sent. Please check your inbox and spam folder, then wait a few minutes before trying again.",
-        );
-        setCooldown(60);
-      } else {
-        setError("Could not send the link. Please try again.");
-      }
+    } else {
+      setError(result.error ?? "Could not send the link. Please try again.");
     }
+    setCooldown(60);
     setResending(false);
   };
 

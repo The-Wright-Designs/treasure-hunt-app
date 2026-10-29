@@ -5,12 +5,15 @@ import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
-  sendEmailVerification,
 } from "firebase/auth";
 import Image from "next/image";
 import Link from "next/link";
 import { auth } from "@/_lib/firebase-client";
-import { createSession, verifyAuthRecaptcha } from "@/_actions/auth-actions";
+import {
+  createSession,
+  sendVerificationEmail,
+  verifyAuthRecaptcha,
+} from "@/_actions/auth-actions";
 import TextInput from "@/_components/ui/inputs/text-input";
 import ButtonType from "@/_components/ui/buttons/button-type";
 import logo from "@/public/logo/treasure-hunt-app-logo.png";
@@ -45,11 +48,11 @@ const LoginComponent = ({ notice }: { notice?: string }) => {
         email,
         password,
       );
-      if (notice && !credential.user.emailVerified) {
-        await sendEmailVerification(credential.user).catch(() => {});
-      }
       const idToken = await credential.user.getIdToken(true);
       await createSession(idToken);
+      if (notice && !credential.user.emailVerified) {
+        await sendVerificationEmail();
+      }
       window.location.href = "/dashboard";
     } catch (err) {
       const message = err instanceof Error ? err.message : "";

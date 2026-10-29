@@ -1,13 +1,15 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
+import nodemailer from "nodemailer";
 import { adminAuth, adminDb } from "@/_lib/firebase-admin";
 import { verifyRecaptchaToken } from "@/_lib/verify-recaptcha";
 import { deleteUserData } from "@/_lib/utils/delete-user-data";
 import { ageFromDateOfBirth, isEligibleAge } from "@/_lib/utils/age";
 import { LEGAL_VERSION } from "@/_lib/utils/legal-version";
 import { ParentDetails, RELATIONSHIPS } from "@/_types/consent-types";
+import { verifyEmailTemplate } from "@/_lib/utils/email-templates/verify-email-template";
 
 export async function verifyAuthRecaptcha(token: string) {
   const result = await verifyRecaptchaToken(token);
@@ -100,6 +102,74 @@ export async function createSession(
     path: "/",
     sameSite: "lax",
   });
+}
+
+export async function sendVerificationEmail(): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  const session = (await cookies()).get("session")?.value;
+  if (!session) return { success: false, error: "Please log in again." };
+
+  try {
+    const decoded = await adminAuth.verifySessionCookie(session, true);
+    if (decoded.email_verified || !decoded.email) return { success: true };
+
+    const userRef = adminDb.collection("users").doc(decoded.uid);
+    const user = (await userRef.get()).data();
+
+    const lastSent = user?.verificationSentAt
+      ? new Date(user.verificationSentAt).getTime()
+      : 0;
+    if (Date.now() - lastSent < 60 * 1000) {
+      return { success: false, error: "Please wait a minute before resending." };
+    }
+
+    const host = (await headers()).get("host");
+    const baseUrl =
+      process.env.NODE_ENV === "production"
+        ? "https://www.treasure-hunt-app.com"
+        : `http://${host}`;
+
+    const verifyUrl = await adminAuth.generateEmailVerificationLink(
+      decoded.email,
+      { url: `${baseUrl}/dashboard` },
+    );
+
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST as string,
+      port: 587,
+      secure: false,
+      auth: {
+        user: process.env.SMTP_USER as string,
+        pass: process.env.SMTP_PASS as string,
+      },
+      requireTLS: true,
+    });
+
+    await transporter.sendMail({
+      from: process.env.SMTP_USER as string,
+      to: decoded.email,
+      subject: "Verify your email for the Treasure Hunt App",
+      html: verifyEmailTemplate({
+        name: user?.name ?? decoded.name ?? "",
+        verifyUrl,
+      }),
+    });
+
+    await userRef.set(
+      { verificationSentAt: new Date().toISOString() },
+      { merge: true },
+    );
+
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to send verification email:", error);
+    return {
+      success: false,
+      error: "We couldn't send the email. Please try again.",
+    };
+  }
 }
 
 export async function requireVerifiedSession() {

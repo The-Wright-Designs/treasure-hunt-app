@@ -147,34 +147,36 @@ const ParentalConsentBanner = ({
           </div>
         </form>
       )}
-      <div className="flex flex-col gap-2 tablet:flex-row">
-        <ButtonType
-          type="button"
-          colorOrange
-          onClick={() => router.refresh()}
-          cssClasses="w-full tablet:w-auto"
-        >
-          They&apos;ve approved
-        </ButtonType>
-        <ButtonType
-          type="button"
-          colorGrey
-          secondary
-          onClick={() => {
-            handleResend();
-          }}
-          disabled={resending || cooldown > 0}
-          cssClasses="w-full tablet:w-auto"
-        >
-          {resending ? (
-            <div className="spinner" />
-          ) : cooldown > 0 ? (
-            `Resend in ${cooldown}s`
-          ) : (
-            "Resend email"
-          )}
-        </ButtonType>
-      </div>
+      {!editing && (
+        <div className="flex flex-col gap-2 tablet:flex-row">
+          <ButtonType
+            type="button"
+            colorOrange
+            onClick={() => router.refresh()}
+            cssClasses="w-full tablet:w-auto"
+          >
+            They&apos;ve approved
+          </ButtonType>
+          <ButtonType
+            type="button"
+            colorGrey
+            secondary
+            onClick={() => {
+              handleResend();
+            }}
+            disabled={resending || cooldown > 0}
+            cssClasses="w-full tablet:w-auto"
+          >
+            {resending ? (
+              <div className="spinner" />
+            ) : cooldown > 0 ? (
+              `Resend in ${cooldown}s`
+            ) : (
+              "Resend email"
+            )}
+          </ButtonType>
+        </div>
+      )}
       {sent && <p className="text-[12px]">Email sent to {parentEmail}.</p>}
       {editState?.success && (
         <p className="text-[12px]">Email sent to {parentEmail}.</p>

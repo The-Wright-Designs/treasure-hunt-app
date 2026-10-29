@@ -6,13 +6,16 @@ import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 import {
   createUserWithEmailAndPassword,
   updateProfile,
-  sendEmailVerification,
 } from "firebase/auth";
 import Image from "next/image";
 import Link from "next/link";
 import { Check, X } from "lucide-react";
 import { auth } from "@/_lib/firebase-client";
-import { createSession, verifyAuthRecaptcha } from "@/_actions/auth-actions";
+import {
+  createSession,
+  sendVerificationEmail,
+  verifyAuthRecaptcha,
+} from "@/_actions/auth-actions";
 import { requestParentalConsent } from "@/_actions/consent-actions";
 import {
   ageFromDateOfBirth,
@@ -370,14 +373,6 @@ const RegisterComponent = () => {
                   await updateProfile(credential.user, {
                     displayName: values.name,
                   });
-                  try {
-                    await sendEmailVerification(credential.user);
-                  } catch (verificationError) {
-                    console.error(
-                      "Verification email failed to send:",
-                      verificationError,
-                    );
-                  }
                   const idToken = await credential.user.getIdToken(true);
                   await createSession(idToken, values.phone, {
                     dateOfBirth: values.dateOfBirth,
@@ -392,6 +387,7 @@ const RegisterComponent = () => {
                       },
                     }),
                   });
+                  await sendVerificationEmail();
                   if (needsParent) await requestParentalConsent();
                   router.push("/dashboard");
                 } catch (err) {
