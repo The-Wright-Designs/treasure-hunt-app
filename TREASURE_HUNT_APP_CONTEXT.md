@@ -395,7 +395,7 @@ Full detail is in `CLAUDE.md` and the developer's global instructions. In short:
 **Before Phase 1 sign-off**
 
 - Legal:
-  - `/privacy`, `/terms`, the 13–18 age check and parental consent are built, but **every `[PLACEHOLDER: …]` and gap in the privacy policy and terms must be filled before launch**: the organiser's legal name and contact details, the Information Officer, the email provider, the winner-record retention period, whether relatives or employees may enter, the prize collection office address, the prize claim period and what happens to unclaimed prizes, and the sponsors' role. See `TO_DO.md`.
+  - `/privacy`, `/terms`, the 13–18 age check and parental consent are built, but **every `[PLACEHOLDER: …]` and gap in the privacy policy and terms must be filled before launch**: the organiser's legal name and contact details, the Information Officer, the email provider, who receives the results email and how long it and winner records are kept, whether relatives or employees may enter, any limit on repeat wins, the prize collection office address, who funds the prize, and the sponsors' role. The terms already say admins can't win and an unclaimed prize is redrawn after 7 days, but neither is built yet. See `TO_DO.md`.
   - A South African attorney should review both documents, including Consumer Protection Act s36 (promotional competitions). The organiser must register an Information Officer with the Information Regulator.
   - Create the TTL policy on `consentRequests.expiresAt`, and delete the old test accounts (they have no consent record).
 - Content:

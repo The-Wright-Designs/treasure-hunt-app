@@ -14,12 +14,14 @@
   - Organiser's full legal name, contact email and phone
   - Information Officer's name (and register them with the Information Regulator)
   - Email provider name (the SMTP host)
-  - Winner-record retention period
   - Whether relatives or employees of the organiser and sponsors may enter
   - Prize collection office address
-  - Days allowed to claim a prize, and whether an unclaimed prize is redrawn or forfeited
-  - The sponsors' role (funding the prize, hosting collection)
+  - Who funds the prize
+  - Any limit on how often the same player may win
+  - Who receives the results email, and how long it and winner records are kept
+  - The sponsors' role (what they are and aren't responsible for), and written approval to use their logos
 - [ ] **Have a South African attorney review both documents**, including whether the hunt counts as a promotional competition under Consumer Protection Act s36
+- [ ] **Terms now promise things the code doesn't do yet:** admins can still enter and be drawn (exclude them in `pickWinner()`), and there is no redraw feature for an unclaimed prize after 7 days
 - [ ] Bump `LEGAL_VERSION` / `LEGAL_UPDATED` in `_lib/utils/legal-version.ts` whenever the text changes
 - [ ] **Firebase console:** add a TTL policy on `consentRequests.expiresAt`
 - [ ] Delete the old test accounts (they have no consent record, so they see "Registration incomplete" and can't join hunts)

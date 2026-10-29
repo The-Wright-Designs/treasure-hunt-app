@@ -28,7 +28,7 @@ const TermsPage = () => {
           <h2 className="text-[20px]">1. Who can take part</h2>
           <ul className="list-disc flex flex-col gap-1 pl-5">
             <li>
-              <p>Players must be aged 13 to 18</p>
+              <p>Players must be aged 13 to 18 when they register</p>
             </li>
             <li>
               <p>
@@ -47,8 +47,19 @@ const TermsPage = () => {
             </li>
             <li>
               <p>
+                The organiser and the people who run or administer the app may
+                not win a prize
+              </p>
+            </li>
+            <li>
+              <p>
                 [PLACEHOLDER: whether relatives or employees of the organiser
                 and sponsors may take part]
+              </p>
+            </li>
+            <li>
+              <p>
+                [PLACEHOLDER: any limit on how often the same player may win]
               </p>
             </li>
           </ul>
@@ -65,22 +76,22 @@ const TermsPage = () => {
             </li>
             <li>
               <p>
-                An item with a printed code is hidden inside the search area
-                shown on the hunt map. Players must join the hunt in the app to
-                see the clues and map
+                An item with a printed code or QR code is hidden inside the
+                search area shown on the hunt map. Players must join the hunt
+                in the app to see the clues and map
               </p>
             </li>
             <li>
               <p>
-                To enter, the player must find the item themselves and type its
-                code into the app while standing in the search area, with
-                location access switched on
+                To enter, the player must find the item themselves and type or
+                scan its code in the app while standing in the search area,
+                with location access switched on
               </p>
             </li>
             <li>
               <p>
-                Each player may enter once per hunt. Entries after the deadline
-                are not accepted
+                Each player can complete each hunt once. Entries after the
+                deadline are not accepted
               </p>
             </li>
             <li>
@@ -123,14 +134,17 @@ const TermsPage = () => {
           <ul className="list-disc flex flex-col gap-1 pl-5">
             <li>
               <p>
-                When a hunt closes, one winner is picked at random by the app
-                from every player who entered the correct code
+                When a hunt closes on Sunday at 17:00, the app&apos;s software
+                automatically picks one winner at random from every eligible
+                player who entered the correct code. Each of them has an equal
+                chance of winning, and no person chooses the winner
               </p>
             </li>
             <li>
               <p>
-                The prize is the cash amount shown on that hunt. It cannot be
-                exchanged or transferred
+                The prize is the cash amount shown on that hunt, provided by
+                [PLACEHOLDER: who funds the prize]. It cannot be exchanged or
+                transferred
               </p>
             </li>
             <li>
@@ -141,18 +155,19 @@ const TermsPage = () => {
             </li>
             <li>
               <p>
-                The winner must collect the prize in person at [PLACEHOLDER:
-                prize collection office address], together with the parent or
+                The winner must collect the prize in person at the
+                organiser&apos;s office at [PLACEHOLDER: prize collection office
+                address], together with the parent or
                 guardian named at registration, who must show a valid South
                 African ID or passport. A winner aged 18 must show their own ID
               </p>
             </li>
             <li>
               <p>
-                If the prize is not claimed within [PLACEHOLDER: number] days of
-                the winner being contacted, or the winner cannot be reached or
-                is found to have broken these terms, the organiser may
-                [PLACEHOLDER: redraw a new winner / forfeit the prize]
+                If the winner cannot be reached, does not collect the prize
+                within 7 days of being contacted, or is found to have broken
+                these terms, a new winner is picked at random from the other
+                players who entered the correct code
               </p>
             </li>
             <li>
@@ -201,8 +216,9 @@ const TermsPage = () => {
           <h2 className="text-[20px]">6. Sponsors</h2>
           <p>
             SMHART Security and Plett Security sponsor the hunt and their
-            logos appear in the app. [PLACEHOLDER: confirm the sponsors&apos;
-            role, e.g. whether they fund the prize or host prize collection].
+            logos appear in the app with their permission. [PLACEHOLDER:
+            what the sponsors are and are not responsible for, e.g. funding the
+            prize or hosting prize collection].
           </p>
         </section>
 

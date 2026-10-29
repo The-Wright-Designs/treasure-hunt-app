@@ -86,8 +86,8 @@ const PrivacyPage = () => {
             </li>
             <li>
               <p>
-                Location: when a player submits a hunt code, their phone&apos;s
-                GPS position is checked against the hunt area. The position is
+                Location: when a player enters or scans a hunt code, their
+                phone&apos;s GPS position is checked against the hunt area. The position is
                 used for that check only and is not stored. The map showing the
                 player&apos;s live position runs on their own device and is not
                 sent to us.
@@ -101,8 +101,15 @@ const PrivacyPage = () => {
             </li>
             <li>
               <p>
-                The number of wrong codes entered per hunt, kept for up to an
-                hour to limit guessing
+                The number of wrong codes entered per hunt, used for one hour
+                to limit guessing and then deleted automatically
+              </p>
+            </li>
+            <li>
+              <p>
+                Camera: for hunts that use a QR code, the camera is used on the
+                player&apos;s device to read the code. No photos or video are
+                saved or sent to us
               </p>
             </li>
           </ul>
@@ -112,7 +119,7 @@ const PrivacyPage = () => {
               <p>A session cookie that keeps the player logged in for up to 7 days</p>
             </li>
             <li>
-              <p>The device identifier cookie described above</p>
+              <p>The device identifier cookie described above, which lasts 1 year</p>
             </li>
             <li>
               <p>
@@ -178,7 +185,14 @@ const PrivacyPage = () => {
                 The organiser receives an email when each hunt closes, listing
                 the winner&apos;s contact details, their parent or
                 guardian&apos;s name and number, and the names and contact
-                details of every player who found the item
+                details of every player who found the item. This email is sent
+                to [PLACEHOLDER: who receives the results email]
+              </p>
+            </li>
+            <li>
+              <p>
+                Other players never see a player&apos;s name or contact
+                details in the app
               </p>
             </li>
             <li>
@@ -216,7 +230,14 @@ const PrivacyPage = () => {
               </p>
             </li>
             <li>
-              <p>Wrong-code records are deleted automatically after about a day</p>
+              <p>
+                If the player does not verify their email address within 7 days
+                of registering or changing it, the account is deleted
+                automatically
+              </p>
+            </li>
+            <li>
+              <p>Wrong-code records are deleted automatically, usually within a day</p>
             </li>
             <li>
               <p>
@@ -229,8 +250,9 @@ const PrivacyPage = () => {
             </li>
             <li>
               <p>
-                The organiser keeps winner records for [PLACEHOLDER: retention
-                period for winner records]
+                The organiser keeps winner records, and the results emails
+                described above, for [PLACEHOLDER: retention period for winner
+                records and results emails]
               </p>
             </li>
           </ul>
@@ -294,7 +316,8 @@ const PrivacyPage = () => {
           <h2 className="text-[20px]">9. Changes and contact</h2>
           <p>
             If we change this policy we will update the date above and, for
-            material changes, ask for consent again. Questions or requests can
+            material changes, tell players and their parents or guardians and
+            ask for consent again where the law requires it. Questions or requests can
             be sent to [PLACEHOLDER: email address] or [PLACEHOLDER: phone
             number]. See also our <Link href="/terms">Terms &amp; Conditions</Link>.
           </p>
