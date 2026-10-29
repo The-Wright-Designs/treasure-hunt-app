@@ -1,11 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { UserRoundCheck } from "lucide-react";
 import classNames from "classnames";
-import { requestParentalConsent } from "@/_actions/consent-actions";
+import {
+  requestParentalConsent,
+  updateParentEmail,
+} from "@/_actions/consent-actions";
 import ButtonType from "@/_components/ui/buttons/button-type";
+import EmailInput from "@/_components/ui/inputs/email-input";
 
 interface ParentalConsentBannerProps {
   parentEmail: string;
@@ -21,6 +25,23 @@ const ParentalConsentBanner = ({
   const [sent, setSent] = useState(false);
   const [cooldown, setCooldown] = useState(0);
   const [error, setError] = useState("");
+  const [editing, setEditing] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [editState, editAction] = useActionState(
+    async (
+      prevState: Awaited<ReturnType<typeof updateParentEmail>> | null,
+      formData: FormData,
+    ) => {
+      const result = await updateParentEmail(prevState, formData);
+      if (result.success) {
+        setEditing(false);
+        setNewEmail("");
+        router.refresh();
+      }
+      return result;
+    },
+    null,
+  );
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -86,8 +107,46 @@ const ParentalConsentBanner = ({
           <p className="text-[12px]">
             Ask them to check their spam folder if they can&apos;t find it.
           </p>
+          {!editing && (
+            <button
+              type="button"
+              onClick={() => setEditing(true)}
+              className="text-[12px] text-link underline self-start desktop:hover:cursor-pointer"
+            >
+              Wrong email? Change it
+            </button>
+          )}
         </div>
       </div>
+      {editing && (
+        <form action={editAction} className="flex flex-col gap-2">
+          <EmailInput
+            label="Parent or guardian's email"
+            name="parentEmail"
+            value={newEmail}
+            onChange={(e) => setNewEmail(e.target.value)}
+            required
+          />
+          <div className="flex flex-col gap-2 tablet:flex-row">
+            <ButtonType
+              type="submit"
+              colorOrange
+              cssClasses="w-full tablet:w-auto"
+            >
+              Save and resend
+            </ButtonType>
+            <ButtonType
+              type="button"
+              colorGrey
+              secondary
+              onClick={() => setEditing(false)}
+              cssClasses="w-full tablet:w-auto"
+            >
+              Cancel
+            </ButtonType>
+          </div>
+        </form>
+      )}
       <div className="flex flex-col gap-2 tablet:flex-row">
         <ButtonType
           type="button"
@@ -116,10 +175,12 @@ const ParentalConsentBanner = ({
           )}
         </ButtonType>
       </div>
-      {sent && (
-        <p className="text-[12px]">
-          Email sent to {parentEmail}.
-        </p>
+      {sent && <p className="text-[12px]">Email sent to {parentEmail}.</p>}
+      {editState?.success && (
+        <p className="text-[12px]">Email sent to {parentEmail}.</p>
+      )}
+      {editState?.error && (
+        <p className="text-error text-[12px]">{editState.error}</p>
       )}
       {error && <p className="text-error text-[12px]">{error}</p>}
     </div>

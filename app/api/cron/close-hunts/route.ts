@@ -1,4 +1,4 @@
-import { adminDb } from "@/_lib/firebase-admin";
+import { adminAuth, adminDb } from "@/_lib/firebase-admin";
 import {
   pickWinner,
   notifyHuntClosed,
@@ -90,6 +90,26 @@ export async function GET(request: Request) {
         .slice(0, DELETE_LIMIT);
 
       for (const doc of expired) {
+        await deleteUserData(doc.id);
+        deleted++;
+      }
+
+      const unverified = await adminDb
+        .collection("users")
+        .where("emailVerified", "==", false)
+        .get();
+      const stale = unverified.docs
+        .filter(
+          (doc) =>
+            (doc.data().emailChangedAt ?? doc.data().createdAt ?? "") <
+            consentCutoff,
+        )
+        .slice(0, DELETE_LIMIT - deleted);
+
+      for (const doc of stale) {
+        const authUser = await adminAuth.getUser(doc.id).catch(() => null);
+        if (!authUser || authUser.emailVerified || authUser.customClaims?.admin)
+          continue;
         await deleteUserData(doc.id);
         deleted++;
       }

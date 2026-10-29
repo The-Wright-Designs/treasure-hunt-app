@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { sendEmailVerification } from "firebase/auth";
 import { FirebaseError } from "firebase/app";
 import { MailWarning } from "lucide-react";
@@ -132,7 +133,10 @@ const VerifyEmailBanner = ({ cssClasses }: { cssClasses?: string }) => {
           <ul className="list-disc pl-4 flex flex-col gap-1">
             <li className="text-[12px]">Check your spam folder</li>
             <li className="text-[12px]">
-              Double check your email address is correct in your profile
+              Double check your email address is correct in your{" "}
+              <Link href="/profile" className="text-[12px]">
+                profile
+              </Link>
             </li>
           </ul>
         </div>

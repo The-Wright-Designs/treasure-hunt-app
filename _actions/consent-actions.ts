@@ -105,6 +105,42 @@ export async function requestParentalConsent(): Promise<ConsentState> {
   }
 }
 
+export async function updateParentEmail(
+  _prevState: ConsentState | null,
+  formData: FormData,
+): Promise<ConsentState> {
+  const session = (await cookies()).get("session")?.value;
+  if (!session) return { success: false, error: "Please log in again." };
+
+  const email = formData.get("parentEmail")?.toString().trim() ?? "";
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return { success: false, error: "Please enter a valid email address." };
+  }
+
+  try {
+    const decoded = await adminAuth.verifySessionCookie(session, true);
+    if (email.toLowerCase() === decoded.email?.toLowerCase()) {
+      return {
+        success: false,
+        error: "This must be your parent or guardian's own email, not yours.",
+      };
+    }
+
+    const userRef = adminDb.collection("users").doc(decoded.uid);
+    const user = (await userRef.get()).data();
+    if (user?.consent?.status !== "pending" || !user.parent) {
+      return { success: false, error: "No consent is needed for this account." };
+    }
+
+    await userRef.update({ "parent.email": email });
+  } catch (error) {
+    console.error("Failed to update parent email:", error);
+    return { success: false, error: "Something went wrong. Please try again." };
+  }
+
+  return requestParentalConsent();
+}
+
 export async function getConsentRequest(token: string) {
   const request = await findRequest(token);
   if (!request) return null;

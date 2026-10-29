@@ -5,6 +5,7 @@ import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
+  sendEmailVerification,
 } from "firebase/auth";
 import Image from "next/image";
 import Link from "next/link";
@@ -44,6 +45,9 @@ const LoginComponent = ({ notice }: { notice?: string }) => {
         email,
         password,
       );
+      if (notice && !credential.user.emailVerified) {
+        await sendEmailVerification(credential.user).catch(() => {});
+      }
       const idToken = await credential.user.getIdToken(true);
       await createSession(idToken);
       window.location.href = "/dashboard";

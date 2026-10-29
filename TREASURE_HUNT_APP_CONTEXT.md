@@ -79,10 +79,11 @@ Only one hunt can be live at a time. If a hunt is still live, `open-hunts` does 
 
 - Under-18 accounts are created with `consent.status: "pending"`; 18-year-olds get `"self"`. The registration fields are only written once. `createSession` ignores `details` if the doc already has `consent`, so a pending teen can't re-submit an adult date of birth.
 - `requestParentalConsent()` creates a random token, stores `consentRequests/{sha256(token)} = { uid, expiresAt (+7 days) }`, deleting any earlier request, and emails the parent a `/consent/{token}` link. Resending has a 60-second server-side cooldown (`consent.emailSentAt`).
+- `updateParentEmail()` lets a pending teen fix a wrong parent email from the banner ("Wrong email? Change it"). It must differ from their own email. It saves `parent.email` and calls `requestParentalConsent()`, so earlier links stop working.
 - On `/consent/[token]` (public, noindex, no-referrer), the parent reads a summary, ticks four boxes (guardian, privacy, terms, prize collection with ID) and types their name:
   - **Give consent** replaces `consent` with `{ status: "granted", grantedAt, signedName, ip, userAgent, legalVersion }` and deletes the request.
   - **Decline** deletes the account through `deleteUserData`.
-- Until consent is granted, the dashboard shows `ParentalConsentBanner` (resend and re-check). `joinHunt` and `submitHuntEntry` refuse unless the status is `granted` or `self`. Admins are exempt. An account with no consent record, such as an old test account or one whose registration was interrupted, sees "Registration incomplete" instead.
+- Until consent is granted, the dashboard shows `ParentalConsentBanner` (resend, re-check and change parent email). `joinHunt` and `submitHuntEntry` refuse unless the status is `granted` or `self`. Admins are exempt. An account with no consent record, such as an old test account or one whose registration was interrupted, sees "Registration incomplete" instead.
 - `close-hunts` deletes up to 10 `pending` users per run whose `createdAt` is more than 7 days old.
 - The in-person check happens only at **prize collection**: the owner email's winner panel shows the parent's name, relationship and phone, and the parent must bring ID.
 - Login has a "Forgot password" flow that uses Firebase's reset email.
@@ -91,7 +92,9 @@ Only one hunt can be live at a time. If a hunt is still live, `open-hunts` does 
 
 ### Email verification
 
-Until they verify, users see a banner above every dashboard page with a resend button (60-second cooldown). They can browse and see the active hunt, but **cannot join it or enter a code**. The banner detects verification by itself and refreshes the session.
+Until they verify, users see a banner above every dashboard page with a resend button (60-second cooldown). They can browse and see the active hunt, but **cannot join it or enter a code**. The banner detects verification by itself and refreshes the session. It links to Profile so a wrong email can be fixed.
+
+`close-hunts` deletes users (up to the same 10 per run, shared with the pending sweep) still unverified 7 days after `emailChangedAt ?? createdAt`, after confirming with Firebase Auth that they're unverified and not admins. This frees up typo'd emails.
 
 ### Layout
 
@@ -225,7 +228,7 @@ Route protection happens in the layouts. There is no middleware:
 - **Session:** after a Firebase login, the ID token is exchanged for an HTTP-only `session` cookie (7 days, `sameSite: lax`, `secure` in production). Every server action re-checks the cookie, including whether it has been revoked.
 - **Users doc:** each login creates or updates `users/{uid}`. The email is only written the first time, so a changed email is written by the profile update instead.
 - **Logout:** revokes the Firebase refresh tokens and deletes the cookie.
-- **Email change:** updates Firebase Auth with `emailVerified: false`, updates the users doc, deletes the session and sends the user to login. The verification banner then applies.
+- **Email change:** updates Firebase Auth with `emailVerified: false`, updates the users doc, stamps `emailChangedAt`, deletes the session and sends the user to login. Logging in from there sends a new verification email automatically, and the verification banner then applies.
 - **Delete account** does the following, in order:
   1. Removes the user from any live hunt's `participants` and `completedBy`, so they can't win.
   2. Deletes any `consentRequests` for the user, then `users/{uid}`.
@@ -243,7 +246,7 @@ Route protection happens in the layouts. There is no middleware:
 
 | Collection                    | Fields                                                                                                                                                                                                                                                                                                    | Notes                                                        |
 | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| `users/{uid}`                 | `name`, `phone`, `email`, `emailVerified`, `dateOfBirth`, `school?`, `address?`, `parent?` (`name`, `email`, `phone`, `relationship`; under-18s only), `consent` (`status`: `pending`/`granted`/`self`, plus `emailSentAt?` or the grant record), `termsAcceptedAt`, `legalVersion`, `createdAt`                                                                                                                                                                                                                                  | Optional fields are only stored when given                   |
+| `users/{uid}`                 | `name`, `phone`, `email`, `emailVerified`, `dateOfBirth`, `school?`, `address?`, `parent?` (`name`, `email`, `phone`, `relationship`; under-18s only), `consent` (`status`: `pending`/`granted`/`self`, plus `emailSentAt?` or the grant record), `termsAcceptedAt`, `legalVersion`, `createdAt`, `emailChangedAt?`                                                                                                                                                                                                                                  | Optional fields are only stored when given                   |
 | `hunts/{id}`                  | `ongoing`, `startsAt`, `deadline`, `clues[]`, `entryCode`, `entryType?` (`"code"` or `"qr"`, missing = `"code"`), `prizeAmount`, `participants[]`, `completedBy[]`, `completedDevices?[]`, `winner` (uid or null), `closedAt?`, `notifiedAt?`, `mapLatitude`, `mapLongitude`, `mapZoom`, `circleLatitude?`, `circleLongitude?`, `circleRadius?`, `locationNote?` | Dates are ISO strings                                        |
 | `announcements/{id}`          | `heading`, `body`, `createdAt`                                                                                                                                                                                                                                                                            |                                                              |
 | `huntAttempts/{huntId}_{uid}` | `count`, `windowStart` (ms), `expiresAt` (Timestamp)                                                                                                                                                                                                                                                      | Wrong-guess limit. Cleaned up by a TTL policy on `expiresAt` |
@@ -270,7 +273,7 @@ Types live in `_types/past-hunt-types.ts`. `Hunt` is the stored doc shape. The v
 | `profile-actions.ts`        | `getProfile`, `saveProfile`                                                                                                                                                               | Profile                                         |
 | `announcement-actions.ts`   | `getAnnouncements`, `createAnnouncement`, `updateAnnouncement`, `deleteAnnouncement`                                                                                                      | Dashboard, announcements, admin                 |
 | `admin-actions.ts`          | `isAdmin`, `getQueuedHunts`, `getActiveHuntAdmin`, `getClosedHuntsNeedingAttention`, `createHunt`, `updateHunt`, `updateHuntClues`, `deleteQueuedHunt`, `closeHuntNow`, `resendHuntEmail` | Admin                                           |
-| `consent-actions.ts`        | `requestParentalConsent`, `getConsentRequest`, `grantParentalConsent`, `declineParentalConsent` | Register, consent banner, `/consent/[token]` |
+| `consent-actions.ts`        | `requestParentalConsent`, `updateParentEmail`, `getConsentRequest`, `grantParentalConsent`, `declineParentalConsent` | Register, consent banner, `/consent/[token]` |
 | `send-hunt-closed-email.ts` | `sendHuntClosedEmail`                                                                                                                                                                     | `hunt-notify.ts`                                |
 | `app/api/cron/open-hunts`   | GET, requires `Authorization: Bearer CRON_SECRET`                                                                                                                                         | `openHunts` function                            |
 | `app/api/cron/close-hunts`  | GET, requires the same bearer token                                                                                                                                                       | `closeHunts` function                           |
@@ -292,6 +295,7 @@ Shared hunt logic lives in `_lib/utils/hunt-notify.ts`:
 - **close-hunts:**
   1. Closes every overdue live hunt and picks its winner in one batch.
   2. Sweeps up to 10 closed hunts that haven't been notified and emails the owner for each. `notifiedAt` makes this safe to retry.
+  3. Deletes up to 10 accounts in total that are still `pending` consent, or still unverified, 7 days on.
 - **Owner email:** sent to `SMTP_SEND_TO` with the subject "Hunt closed - winner: {name}". It contains:
   - A winner panel with the winner's phone and email.
   - A hunt overview: dates, prize, clue count, participant counts, and the location note or a map link.

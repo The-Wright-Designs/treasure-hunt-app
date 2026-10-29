@@ -69,7 +69,17 @@ export async function saveProfile(
   await adminDb
     .collection("users")
     .doc(decoded.uid)
-    .set({ phone, email, ...(emailChanged && { emailVerified: false }) }, { merge: true });
+    .set(
+      {
+        phone,
+        email,
+        ...(emailChanged && {
+          emailVerified: false,
+          emailChangedAt: new Date().toISOString(),
+        }),
+      },
+      { merge: true },
+    );
 
   if (emailChanged) (await cookies()).delete("session");
 
