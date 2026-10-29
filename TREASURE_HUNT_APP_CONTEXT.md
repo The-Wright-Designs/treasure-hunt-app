@@ -69,7 +69,7 @@ Only one hunt can be live at a time. If a hunt is still live, `open-hunts` does 
 ### Sign-up and login (`/register`, `/login`)
 
 - **Register** has three steps:
-  1. Name, SA phone number (`0` or `+27`, then 6–8, then 8 digits), email and **date of birth** (required; only ages 13–18 are allowed, computed in SAST by `_lib/utils/age.ts`), plus optional school and address, which are labelled as being for future safety support.
+  1. Name, SA phone number (`0` or `+27`, then 6–8, then 8 digits), email and **date of birth** (required; only ages 13–18 are allowed, computed in SAST by `_lib/utils/age.ts`, and the date picker's `min`/`max` come from `dateOfBirthRange()` there so only eligible dates can be picked), plus optional school and address, which are labelled as being for future safety support.
   2. For under-18s: the **parent or guardian's** name, relationship (Mother / Father / Legal guardian), email (must differ from the teen's) and SA phone. Everyone ticks a box accepting the Terms and Privacy Policy.
   3. A password, which must contain upper-case, lower-case, a number and a special character, and a confirmation.
 - A verification email is sent on sign-up. For under-18s, a **parental consent email** is also sent to the parent (see below).

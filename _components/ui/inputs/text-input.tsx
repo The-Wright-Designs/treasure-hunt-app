@@ -17,6 +17,8 @@ interface Props {
   error?: string;
   disabled?: boolean;
   autoComplete?: string;
+  min?: string;
+  max?: string;
 }
 
 const TextInput = ({
@@ -32,6 +34,8 @@ const TextInput = ({
   error,
   disabled = false,
   autoComplete,
+  min,
+  max,
 }: Props) => {
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = type === "password";
@@ -54,6 +58,8 @@ const TextInput = ({
           onChange={onChange}
           disabled={disabled}
           autoComplete={autoComplete}
+          min={min}
+          max={max}
           className={classNames(
             "bg-white border rounded-[6px] px-3 py-2 w-full placeholder:text-black/25 outline-none",
             error ? "border-error" : "border-black/50",

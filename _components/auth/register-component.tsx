@@ -14,7 +14,11 @@ import { Check, X } from "lucide-react";
 import { auth } from "@/_lib/firebase-client";
 import { createSession, verifyAuthRecaptcha } from "@/_actions/auth-actions";
 import { requestParentalConsent } from "@/_actions/consent-actions";
-import { ageFromDateOfBirth, isEligibleAge } from "@/_lib/utils/age";
+import {
+  ageFromDateOfBirth,
+  dateOfBirthRange,
+  isEligibleAge,
+} from "@/_lib/utils/age";
 import { RELATIONSHIPS } from "@/_types/consent-types";
 import TextInput from "@/_components/ui/inputs/text-input";
 import PhoneInput from "@/_components/ui/inputs/phone-input";
@@ -58,6 +62,7 @@ const RegisterComponent = () => {
 
   const age = ageFromDateOfBirth(values.dateOfBirth);
   const needsParent = age < 18;
+  const dobRange = dateOfBirthRange();
 
   const step1Valid =
     values.name.trim().length >= 2 &&
@@ -137,6 +142,8 @@ const RegisterComponent = () => {
                 type="date"
                 required
                 autoComplete="bday"
+                min={dobRange.min}
+                max={dobRange.max}
                 value={values.dateOfBirth}
                 onChange={handleChange}
                 disabled={registering}

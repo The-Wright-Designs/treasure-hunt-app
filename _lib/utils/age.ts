@@ -18,3 +18,16 @@ export function ageFromDateOfBirth(dateOfBirth: string, now = new Date()): numbe
 export function isEligibleAge(age: number): boolean {
   return Number.isInteger(age) && age >= MIN_AGE && age <= MAX_AGE;
 }
+
+export function dateOfBirthRange(now = new Date()): { min: string; max: string } {
+  const saNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+  const year = saNow.getUTCFullYear();
+  const month = saNow.getUTCMonth();
+  const day = saNow.getUTCDate();
+  const toIso = (date: number) => new Date(date).toISOString().slice(0, 10);
+
+  return {
+    min: toIso(Date.UTC(year - MAX_AGE - 1, month, day + 1)),
+    max: toIso(Date.UTC(year - MIN_AGE, month, day)),
+  };
+}
