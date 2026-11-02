@@ -214,6 +214,8 @@ _types/             Hunt and view types, announcement and button types
 functions/          Separate npm project: the two scheduled Firebase Functions
 public/             Logo, PWA icons, sponsor logos, WhatsApp icon
 firestore.rules     Deny-all client rules
+firestore.indexes.json  Composite indexes and TTL policies
+.github/workflows/  CI: lint, typecheck and build on every push and PR
 ```
 
 Route protection happens in the layouts. There is no middleware:
@@ -252,7 +254,7 @@ Route protection happens in the layouts. There is no middleware:
 | `hunts/{id}`                  | `ongoing`, `startsAt`, `deadline`, `clues[]`, `entryCode`, `entryType?` (`"code"` or `"qr"`, missing = `"code"`), `prizeAmount`, `participants[]`, `completedBy[]`, `completedDevices?[]`, `winner` (uid or null), `closedAt?`, `notifiedAt?`, `mapLatitude`, `mapLongitude`, `mapZoom`, `circleLatitude?`, `circleLongitude?`, `circleRadius?`, `locationNote?` | Dates are ISO strings                                        |
 | `announcements/{id}`          | `heading`, `body`, `createdAt`                                                                                                                                                                                                                                                                            |                                                              |
 | `huntAttempts/{huntId}_{uid}` | `count`, `windowStart` (ms), `expiresAt` (Timestamp)                                                                                                                                                                                                                                                      | Wrong-guess limit. Cleaned up by a TTL policy on `expiresAt` |
-| `consentRequests/{sha256(token)}` | `uid`, `expiresAt` (Timestamp, +7 days) | Parental consent links. Needs a TTL policy on `expiresAt` (**not yet created**) |
+| `consentRequests/{sha256(token)}` | `uid`, `expiresAt` (Timestamp, +7 days) | Parental consent links. Cleaned up by a TTL policy on `expiresAt` (in `firestore.indexes.json`) |
 
 **Hunt states:**
 
@@ -336,7 +338,7 @@ Shared hunt logic lives in `_lib/utils/hunt-notify.ts`:
 - **Vercel:** hosts the Next.js app on Node 22.x. `vercel.json` only sets long-lived caching for `/_next/static`.
 - **Firebase** (project `treasure-hunt-app-ef86f`) provides:
   - Auth.
-  - Firestore, with deny-all `firestore.rules` deployed through `firebase deploy --only firestore:rules` and a TTL policy on `huntAttempts.expiresAt` (created 30 Sep 2026; deletes docs within about 24 hours of expiry).
+  - Firestore, with deny-all `firestore.rules` and `firestore.indexes.json` deployed through `firebase deploy --only firestore`. The indexes file holds the three composite indexes on `hunts` and the TTL policies on `huntAttempts.expiresAt` (created 30 Sep 2026) and `consentRequests.expiresAt`. TTL deletes docs within about 24 hours of expiry.
   - The two scheduled Functions.
 - **Google Cloud:** Cloud Monitoring holds the metric and alert policy from §11.
 - **PWA:**
@@ -364,10 +366,10 @@ Shared hunt logic lives in `_lib/utils/hunt-notify.ts`:
 ```
 npm run dev | build | start | lint | typecheck
 firebase deploy --only functions
-firebase deploy --only firestore:rules
+firebase deploy --only firestore
 ```
 
-There is no test framework; testing is manual (see `TO_DO.md`).
+There is no test framework; testing is manual (see `TO_DO.md`). `.github/workflows/ci.yml` runs lint, typecheck and build (app and `functions/`) on every push and PR. The build uses dummy Firebase credentials, so CI needs no secrets.
 
 ---
 
@@ -397,7 +399,7 @@ Full detail is in `CLAUDE.md` and the developer's global instructions. In short:
 - Legal:
   - `/privacy`, `/terms`, the 13–18 age check and parental consent are built, but **every `[PLACEHOLDER: …]` and gap in the privacy policy and terms must be filled before launch**: the organiser's legal name and contact details, the Information Officer, the email provider, who receives the results email and how long it and winner records are kept, whether relatives or employees may enter, any limit on repeat wins, the prize collection office address, who funds the prize, and the sponsors' role. The terms already say admins can't win and an unclaimed prize is redrawn after 7 days, but neither is built yet. See `TO_DO.md`.
   - A South African attorney should review both documents, including Consumer Protection Act s36 (promotional competitions). The organiser must register an Information Officer with the Information Regulator.
-  - Create the TTL policy on `consentRequests.expiresAt`, and delete the old test accounts (they have no consent record).
+  - Delete the old test accounts (they have no consent record).
 - Content:
   - Three `/contact` entries are placeholders.
   - The new logo hasn't been added yet.

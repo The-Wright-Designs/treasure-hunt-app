@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            functions/package-lock.json
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+
+      - name: Build
+        run: |
+          export FIREBASE_ADMIN_PRIVATE_KEY="$(openssl genrsa 2048)"
+          npm run build
+        env:
+          FIREBASE_ADMIN_PROJECT_ID: ci
+          FIREBASE_ADMIN_CLIENT_EMAIL: ci@ci.iam.gserviceaccount.com
+          NEXT_PUBLIC_FIREBASE_API_KEY: ci
+          NEXT_PUBLIC_RECAPTCHA_SITE_KEY: ci
+
+      - run: npm ci --prefix functions
+      - run: npm run build --prefix functions
