@@ -1,3 +1,4 @@
+import { randomInt } from "crypto";
 import { adminAuth, adminDb } from "@/_lib/firebase-admin";
 import { sendHuntClosedEmail } from "@/_actions/send-hunt-closed-email";
 import { HuntParticipant } from "@/_lib/utils/email-templates/hunt-closed-email-template";
@@ -13,15 +14,30 @@ export async function hasQueuedHunt(): Promise<boolean> {
   return snapshot.docs.some((doc) => !doc.data().closedAt);
 }
 
-export function pickWinner(hunt: Hunt): string | null {
-  const completedBy = hunt.completedBy ?? [];
+async function withoutAdmins(uids: string[]): Promise<string[]> {
+  const admins = new Set<string>();
 
-  return (
-    hunt.winner ??
-    (completedBy.length
-      ? completedBy[Math.floor(Math.random() * completedBy.length)]
-      : null)
-  );
+  for (let index = 0; index < uids.length; index += 100) {
+    const { users } = await adminAuth.getUsers(
+      uids.slice(index, index + 100).map((uid) => ({ uid })),
+    );
+    users.forEach((user) => user.customClaims?.admin && admins.add(user.uid));
+  }
+
+  return uids.filter((uid) => !admins.has(uid));
+}
+
+export async function pickWinner(
+  hunt: Hunt,
+): Promise<Pick<Hunt, "winner" | "draw">> {
+  if (hunt.winner) return { winner: hunt.winner };
+
+  const pool = await withoutAdmins(hunt.completedBy ?? []);
+
+  return {
+    winner: pool.length ? pool[randomInt(pool.length)] : null,
+    draw: { drawnAt: new Date().toISOString(), pool },
+  };
 }
 
 export async function resolveParticipants(

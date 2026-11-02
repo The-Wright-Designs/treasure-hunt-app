@@ -180,11 +180,11 @@ export async function closeHuntNow(
   }
 
   const closedAt = new Date().toISOString();
-  const winner = pickWinner(hunt);
+  const result = await pickWinner(hunt);
 
-  await ref.update({ ongoing: false, closedAt, winner });
+  await ref.update({ ongoing: false, closedAt, ...result });
 
-  const sent = await notifyHuntClosed(huntId, { ...hunt, closedAt, winner });
+  const sent = await notifyHuntClosed(huntId, { ...hunt, closedAt, ...result });
 
   revalidatePath("/admin");
   revalidatePath("/active-hunt");

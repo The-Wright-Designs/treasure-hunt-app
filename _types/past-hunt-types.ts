@@ -8,6 +8,7 @@ export interface Hunt {
   completedBy: string[];
   completedDevices?: string[];
   winner: string | null;
+  draw?: { drawnAt: string; pool: string[] };
   deadline: string;
   closedAt?: string;
   notifiedAt?: string;

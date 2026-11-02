@@ -39,14 +39,14 @@ export async function GET(request: Request) {
     if (overdue.length) {
       const batch = adminDb.batch();
 
-      overdue.forEach((doc) => {
+      for (const doc of overdue) {
         const hunt = doc.data() as Hunt;
         batch.update(doc.ref, {
           ongoing: false,
           closedAt: now,
-          winner: pickWinner(hunt),
+          ...(await pickWinner(hunt)),
         });
-      });
+      }
 
       await batch.commit();
     }

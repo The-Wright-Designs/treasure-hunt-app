@@ -146,7 +146,7 @@ Teens registered on the app only. Each hunt runs 7 days. One entry per hunt. Sha
 7. **Wrong-guess limit:** a maximum of 5 wrong codes per player per hunt per hour. After that, the form locks until the hour is up.
 8. The code matches. It's trimmed, upper-cased, and compared on the server; players never receive it.
 
-If every check passes, the player is added to `completedBy` and the device to `completedDevices`. `completedBy` is the pool the winner is drawn from.
+Checks 2 to 8 and the final save run inside one Firestore transaction (re-reading the hunt and the `huntAttempts` doc), so parallel submissions can't get past the device check or the guess limit. If every check passes, the player is added to `completedBy` and the device to `completedDevices`. `completedBy`, minus any admin accounts, is the pool the winner is drawn from.
 
 For QR hunts the QR simply encodes `entryCode`, so a scan goes through exactly the same checks as a typed code.
 
@@ -215,7 +215,6 @@ functions/          Separate npm project: the two scheduled Firebase Functions
 public/             Logo, PWA icons, sponsor logos, WhatsApp icon
 firestore.rules     Deny-all client rules
 firestore.indexes.json  Composite indexes and TTL policies
-.github/workflows/  CI: lint, typecheck and build on every push and PR
 ```
 
 Route protection happens in the layouts. There is no middleware:
@@ -251,7 +250,7 @@ Route protection happens in the layouts. There is no middleware:
 | Collection                    | Fields                                                                                                                                                                                                                                                                                                    | Notes                                                        |
 | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
 | `users/{uid}`                 | `name`, `phone`, `email`, `emailVerified`, `dateOfBirth`, `school?`, `address?`, `parent?` (`name`, `email`, `phone`, `relationship`; under-18s only), `consent` (`status`: `pending`/`granted`/`self`, plus `emailSentAt?` or the grant record), `termsAcceptedAt`, `legalVersion`, `createdAt`, `emailChangedAt?`, `verificationSentAt?`                                                                                                                                                                                                                                  | Optional fields are only stored when given                   |
-| `hunts/{id}`                  | `ongoing`, `startsAt`, `deadline`, `clues[]`, `entryCode`, `entryType?` (`"code"` or `"qr"`, missing = `"code"`), `prizeAmount`, `participants[]`, `completedBy[]`, `completedDevices?[]`, `winner` (uid or null), `closedAt?`, `notifiedAt?`, `mapLatitude`, `mapLongitude`, `mapZoom`, `circleLatitude?`, `circleLongitude?`, `circleRadius?`, `locationNote?` | Dates are ISO strings                                        |
+| `hunts/{id}`                  | `ongoing`, `startsAt`, `deadline`, `clues[]`, `entryCode`, `entryType?` (`"code"` or `"qr"`, missing = `"code"`), `prizeAmount`, `participants[]`, `completedBy[]`, `completedDevices?[]`, `winner` (uid or null), `draw?` (`{ drawnAt, pool[] }`, the uids in the draw), `closedAt?`, `notifiedAt?`, `mapLatitude`, `mapLongitude`, `mapZoom`, `circleLatitude?`, `circleLongitude?`, `circleRadius?`, `locationNote?` | Dates are ISO strings                                        |
 | `announcements/{id}`          | `heading`, `body`, `createdAt`                                                                                                                                                                                                                                                                            |                                                              |
 | `huntAttempts/{huntId}_{uid}` | `count`, `windowStart` (ms), `expiresAt` (Timestamp)                                                                                                                                                                                                                                                      | Wrong-guess limit. Cleaned up by a TTL policy on `expiresAt` |
 | `consentRequests/{sha256(token)}` | `uid`, `expiresAt` (Timestamp, +7 days) | Parental consent links. Cleaned up by a TTL policy on `expiresAt` (in `firestore.indexes.json`) |
@@ -284,7 +283,7 @@ Types live in `_types/past-hunt-types.ts`. `Hunt` is the stored doc shape. The v
 
 Shared hunt logic lives in `_lib/utils/hunt-notify.ts`:
 
-- `pickWinner()`: keeps an existing winner, otherwise picks at random from `completedBy`.
+- `pickWinner()`: keeps an existing winner, otherwise drops admin accounts (checked via their Auth `admin` claim) from `completedBy` and picks one with `crypto.randomInt`. It returns `winner` plus a `draw` record (`drawnAt` and the `pool` of uids) that is saved on the hunt, so every draw can be audited.
 - `resolveParticipants()`: looks up players in the users docs, falling back to Firebase Auth.
 - `notifyHuntClosed()`: sends the email, then stamps `notifiedAt`.
 
@@ -370,7 +369,7 @@ firebase deploy --only functions
 firebase deploy --only firestore
 ```
 
-There is no test framework; testing is manual (see `TO_DO.md`). `.github/workflows/ci.yml` runs lint, typecheck and build (app and `functions/`) on every push and PR. The build uses dummy Firebase credentials, so CI needs no secrets.
+There is no test framework; testing is manual (see `TO_DO.md`).
 
 ---
 
@@ -398,7 +397,7 @@ Full detail is in `CLAUDE.md` and the developer's global instructions. In short:
 **Before Phase 1 sign-off**
 
 - Legal:
-  - `/privacy`, `/terms`, the 13–18 age check and parental consent are built, but **every `[PLACEHOLDER: …]` and gap in the privacy policy and terms must be filled before launch**: the organiser's legal name and contact details, the Information Officer, the email provider, who receives the results email and how long it and winner records are kept, whether relatives or employees may enter, any limit on repeat wins, the prize collection office address, who funds the prize, and the sponsors' role. The terms already say admins can't win and an unclaimed prize is redrawn after 7 days, but neither is built yet. See `TO_DO.md`.
+  - `/privacy`, `/terms`, the 13–18 age check and parental consent are built, but **every `[PLACEHOLDER: …]` and gap in the privacy policy and terms must be filled before launch**: the organiser's legal name and contact details, the Information Officer, the email provider, who receives the results email and how long it and winner records are kept, whether relatives or employees may enter, any limit on repeat wins, the prize collection office address, who funds the prize, and the sponsors' role. The terms already say an unclaimed prize is redrawn after 7 days, but that isn't built yet. (Admins are excluded from the draw.) See `TO_DO.md`.
   - A South African attorney should review both documents, including Consumer Protection Act s36 (promotional competitions). The organiser must register an Information Officer with the Information Regulator.
   - Delete the old test accounts (they have no consent record).
 - Content:
@@ -415,7 +414,6 @@ Full detail is in `CLAUDE.md` and the developer's global instructions. In short:
 - Sponsor splash "seen" is stored per browser, so a new device shows it once more.
 - Location and device checks raise the bar but don't make cheating impossible: GPS can be spoofed and cookies cleared.
 - reCAPTCHA is checked in a separate server call before the Firebase login or registration, not by Firebase itself.
-- The join and entry flow isn't transactional, so two requests racing each other could get past the device check or the guess limit. The risk is low.
 
 ---
 

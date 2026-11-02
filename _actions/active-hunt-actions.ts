@@ -13,6 +13,8 @@ const DEFAULT_CIRCLE_RADIUS = 200;
 const MAX_ATTEMPTS = 5;
 const ATTEMPT_WINDOW = 60 * 60 * 1000;
 
+type EntryResult = { success: boolean; error?: string; lockedUntil?: number };
+
 async function getSession() {
   const session = (await cookies()).get("session")?.value;
   if (!session) return null;
@@ -150,9 +152,9 @@ export async function joinHunt(
 }
 
 export async function submitHuntEntry(
-  _prevState: { success: boolean; error?: string; lockedUntil?: number },
+  _prevState: EntryResult,
   formData: FormData,
-): Promise<{ success: boolean; error?: string; lockedUntil?: number }> {
+): Promise<EntryResult> {
   const decoded = await getSession();
 
   if (!decoded) {
@@ -193,104 +195,114 @@ export async function submitHuntEntry(
   const deviceId = await getDeviceId();
 
   const ref = adminDb.collection("hunts").doc(huntId);
+  const attemptsRef = adminDb
+    .collection("huntAttempts")
+    .doc(`${huntId}_${uid}`);
 
   try {
-    const doc = await ref.get();
+    const result = await adminDb.runTransaction(
+      async (transaction): Promise<EntryResult> => {
+        const doc = await transaction.get(ref);
 
-    if (!doc.exists) {
-      return { success: false, error: "We couldn't find that hunt." };
-    }
+        if (!doc.exists) {
+          return { success: false, error: "We couldn't find that hunt." };
+        }
 
-    const hunt = doc.data() as Hunt;
+        const hunt = doc.data() as Hunt;
 
-    if (!hunt.ongoing) {
-      return { success: false, error: "This hunt is no longer open." };
-    }
+        if (!hunt.ongoing) {
+          return { success: false, error: "This hunt is no longer open." };
+        }
 
-    if (new Date(hunt.deadline).getTime() <= Date.now()) {
-      return {
-        success: false,
-        error: "This hunt has closed, so late entries aren't accepted.",
-      };
-    }
+        if (new Date(hunt.deadline).getTime() <= Date.now()) {
+          return {
+            success: false,
+            error: "This hunt has closed, so late entries aren't accepted.",
+          };
+        }
 
-    if (hunt.completedBy?.includes(uid)) {
-      return { success: false, error: "You've already entered this hunt." };
-    }
+        if (hunt.completedBy?.includes(uid)) {
+          return { success: false, error: "You've already entered this hunt." };
+        }
 
-    if (!hunt.participants?.includes(uid)) {
-      return {
-        success: false,
-        error: "Please join the hunt before entering a code.",
-      };
-    }
+        if (!hunt.participants?.includes(uid)) {
+          return {
+            success: false,
+            error: "Please join the hunt before entering a code.",
+          };
+        }
 
-    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-      return {
-        success: false,
-        error:
-          "We couldn't confirm your location. Please allow location access and try again.",
-      };
-    }
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+          return {
+            success: false,
+            error:
+              "We couldn't confirm your location. Please allow location access and try again.",
+          };
+        }
 
-    const centreLatitude = hunt.circleLatitude ?? hunt.mapLatitude;
-    const centreLongitude = hunt.circleLongitude ?? hunt.mapLongitude;
-    const allowedRadius =
-      (hunt.circleRadius ?? DEFAULT_CIRCLE_RADIUS) + LOCATION_ACCURACY_BUFFER;
+        const centreLatitude = hunt.circleLatitude ?? hunt.mapLatitude;
+        const centreLongitude = hunt.circleLongitude ?? hunt.mapLongitude;
+        const allowedRadius =
+          (hunt.circleRadius ?? DEFAULT_CIRCLE_RADIUS) +
+          LOCATION_ACCURACY_BUFFER;
 
-    const distance = distanceInMeters(
-      latitude,
-      longitude,
-      centreLatitude,
-      centreLongitude,
+        const distance = distanceInMeters(
+          latitude,
+          longitude,
+          centreLatitude,
+          centreLongitude,
+        );
+
+        if (distance > allowedRadius) {
+          return {
+            success: false,
+            error: "You need to be at the hunt location to enter the code.",
+          };
+        }
+
+        if (hunt.completedDevices?.includes(deviceId)) {
+          return {
+            success: false,
+            error: "This device has already been used to complete this hunt.",
+          };
+        }
+
+        const attempts = (await transaction.get(attemptsRef)).data();
+        const windowActive =
+          attempts && Date.now() - attempts.windowStart < ATTEMPT_WINDOW;
+
+        if (windowActive && attempts.count >= MAX_ATTEMPTS) {
+          return {
+            success: false,
+            error: "Too many wrong codes. Please wait an hour and try again.",
+            lockedUntil: attempts.windowStart + ATTEMPT_WINDOW,
+          };
+        }
+
+        if (!hunt.entryCode || entryCode !== hunt.entryCode) {
+          const windowStart = windowActive ? attempts.windowStart : Date.now();
+          transaction.set(attemptsRef, {
+            count: windowActive ? attempts.count + 1 : 1,
+            windowStart,
+            expiresAt: new Date(windowStart + ATTEMPT_WINDOW),
+          });
+          return {
+            success: false,
+            error:
+              "That code isn't right. Make sure you've found the right item.",
+          };
+        }
+
+        transaction.update(ref, {
+          completedBy: FieldValue.arrayUnion(uid),
+          completedDevices: FieldValue.arrayUnion(deviceId),
+        });
+
+        return { success: true };
+      },
     );
 
-    if (distance > allowedRadius) {
-      return {
-        success: false,
-        error: "You need to be at the hunt location to enter the code.",
-      };
-    }
-
-    if (hunt.completedDevices?.includes(deviceId)) {
-      return {
-        success: false,
-        error: "This device has already been used to complete this hunt.",
-      };
-    }
-
-    const attemptsRef = adminDb
-      .collection("huntAttempts")
-      .doc(`${huntId}_${uid}`);
-    const attempts = (await attemptsRef.get()).data();
-    const windowActive =
-      attempts && Date.now() - attempts.windowStart < ATTEMPT_WINDOW;
-
-    if (windowActive && attempts.count >= MAX_ATTEMPTS) {
-      return {
-        success: false,
-        error: "Too many wrong codes. Please wait an hour and try again.",
-        lockedUntil: attempts.windowStart + ATTEMPT_WINDOW,
-      };
-    }
-
-    if (!hunt.entryCode || entryCode !== hunt.entryCode) {
-      const windowStart = windowActive ? attempts.windowStart : Date.now();
-      await attemptsRef.set({
-        count: windowActive ? attempts.count + 1 : 1,
-        windowStart,
-        expiresAt: new Date(windowStart + ATTEMPT_WINDOW),
-      });
-      return {
-        success: false,
-        error: "That code isn't right. Make sure you've found the right item.",
-      };
-    }
-
-    await ref.update({
-      completedBy: FieldValue.arrayUnion(uid),
-      completedDevices: FieldValue.arrayUnion(deviceId),
-    });
+    if (!result.success) return result;
   } catch (error) {
     console.error("Failed to submit hunt entry:", error);
     return {
