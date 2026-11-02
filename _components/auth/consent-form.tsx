@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import Link from "next/link";
 import {
   grantParentalConsent,
@@ -21,6 +21,7 @@ const ConsentForm = ({ token, teenName }: ConsentFormProps) => {
   const [declineState, declineAction] = useActionState(declineParentalConsent, {
     success: false,
   });
+  const [confirmingDecline, setConfirmingDecline] = useState(false);
 
   if (grantState.success) {
     return (
@@ -111,9 +112,35 @@ const ConsentForm = ({ token, teenName }: ConsentFormProps) => {
           If you don&apos;t want {teenName} to take part, decline below. Their
           account and details will be deleted straight away.
         </p>
-        <ButtonType type="submit" colorGrey secondary cssClasses="w-full">
-          Decline and delete account
-        </ButtonType>
+        {confirmingDecline ? (
+          <>
+            <p className="text-error">
+              Are you sure? {teenName}&apos;s account will be permanently
+              deleted and can&apos;t be recovered.
+            </p>
+            <ButtonType type="submit" colorOrange cssClasses="w-full">
+              Confirm decline
+            </ButtonType>
+            <ButtonType
+              type="button"
+              colorGrey
+              cssClasses="w-full"
+              onClick={() => setConfirmingDecline(false)}
+            >
+              Cancel
+            </ButtonType>
+          </>
+        ) : (
+          <ButtonType
+            type="button"
+            colorGrey
+            secondary
+            cssClasses="w-full"
+            onClick={() => setConfirmingDecline(true)}
+          >
+            Decline and delete account
+          </ButtonType>
+        )}
         {declineState.error && (
           <p className="text-error text-[12px] text-center">{declineState.error}</p>
         )}

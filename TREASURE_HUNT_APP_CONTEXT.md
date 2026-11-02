@@ -82,7 +82,7 @@ Only one hunt can be live at a time. If a hunt is still live, `open-hunts` does 
 - `updateParentEmail()` lets a pending teen fix a wrong parent email from the banner ("Wrong email? Change it"). It must differ from their own email. It saves `parent.email` and calls `requestParentalConsent()`, so earlier links stop working.
 - On `/consent/[token]` (public, noindex, no-referrer), the parent reads a summary, ticks four boxes (guardian, privacy, terms, prize collection with ID) and types their name:
   - **Give consent** replaces `consent` with `{ status: "granted", grantedAt, signedName, ip, userAgent, legalVersion }` and deletes the request.
-  - **Decline** deletes the account through `deleteUserData`.
+  - **Decline** asks for a second click ("Confirm decline", with Cancel), then deletes the account through `deleteUserData`.
 - Until consent is granted, the dashboard shows `ParentalConsentBanner` (resend, re-check and change parent email). `joinHunt` and `submitHuntEntry` refuse unless the status is `granted` or `self`. Admins are exempt. An account with no consent record, such as an old test account or one whose registration was interrupted, sees "Registration incomplete" instead.
 - `close-hunts` deletes up to 10 `pending` users per run whose `createdAt` is more than 7 days old.
 - The in-person check happens only at **prize collection**: the owner email's winner panel shows the parent's name, relationship and phone, and the parent must bring ID.
@@ -339,6 +339,7 @@ Shared hunt logic lives in `_lib/utils/hunt-notify.ts`:
 - **Firebase** (project `treasure-hunt-app-ef86f`) provides:
   - Auth.
   - Firestore, with deny-all `firestore.rules` and `firestore.indexes.json` deployed through `firebase deploy --only firestore`. The indexes file holds the three composite indexes on `hunts` and the TTL policies on `huntAttempts.expiresAt` (created 30 Sep 2026) and `consentRequests.expiresAt`. TTL deletes docs within about 24 hours of expiry.
+  - Daily Firestore backups, kept for 7 days (schedule created 2 Nov 2026 with `gcloud firestore backups schedules create`; database in `africa-south1`). Point-in-time recovery and delete protection are off. To restore, list backups with `gcloud firestore backups list --location=africa-south1 --project treasure-hunt-app-ef86f`, then `gcloud firestore databases restore --source-backup=<backup name> --destination-database=<new id>`. A restore always creates a new database; it never overwrites `(default)`.
   - The two scheduled Functions.
 - **Google Cloud:** Cloud Monitoring holds the metric and alert policy from §11.
 - **PWA:**
