@@ -13,7 +13,7 @@ A mobile-first web app (installable as a PWA) that runs a **weekly real-world tr
 - **Client:** the hunt organiser, who hides the item, runs the draw and pays the prize.
 - **Sponsors:** SMHART Security and Plett Security. Their logos appear on the first-visit splash, on `/sponsors` and on `/contact`.
 - **Developer:** Chad Wright (The Wright Designs), who builds and runs the app. All content (hunts, announcements, safety tips, contacts) is managed on the developer's side.
-- **Live URL:** https://www.treasure-hunt-app.com
+- **Live URL:** https://treasure-hunt-app-silk.vercel.app (the planned domain `www.treasure-hunt-app.com` isn't registered yet; it's still hardcoded in the SEO metadata in `app/layout.tsx` and the share link in `share-modal.tsx`). Email links (parental consent, verification redirect) are built from the request's `host` header, so they follow whichever domain the site is served on.
 - **Repo:** https://github.com/The-Wright-Designs/treasure-hunt-app
 
 ## 2. Project status

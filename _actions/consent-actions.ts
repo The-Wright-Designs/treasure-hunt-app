@@ -66,10 +66,8 @@ export async function requestParentalConsent(): Promise<ConsentState> {
       });
 
     const host = (await headers()).get("host");
-    const baseUrl =
-      process.env.NODE_ENV === "production"
-        ? "https://www.treasure-hunt-app.com"
-        : `http://${host}`;
+    const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
+    const baseUrl = `${protocol}://${host}`;
 
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST as string,

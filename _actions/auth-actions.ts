@@ -198,10 +198,8 @@ export async function sendVerificationEmail(): Promise<{
     }
 
     const host = (await headers()).get("host");
-    const baseUrl =
-      process.env.NODE_ENV === "production"
-        ? "https://www.treasure-hunt-app.com"
-        : `http://${host}`;
+    const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
+    const baseUrl = `${protocol}://${host}`;
 
     const verifyUrl = await adminAuth.generateEmailVerificationLink(
       decoded.email,
