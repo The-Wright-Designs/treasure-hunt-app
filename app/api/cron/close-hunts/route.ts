@@ -65,6 +65,7 @@ export async function GET(request: Request) {
 
     let notified = 0;
     let failed = 0;
+    const warnings: string[] = [];
 
     for (const doc of sweep) {
       const sent = await notifyHuntClosed(doc.id, doc.data() as Hunt);
@@ -72,7 +73,7 @@ export async function GET(request: Request) {
         notified++;
       } else {
         failed++;
-        console.error(`Owner email failed to send for hunt ${doc.id}`);
+        warnings.push(`Owner email failed to send for hunt ${doc.id}`);
       }
     }
 
@@ -123,7 +124,7 @@ export async function GET(request: Request) {
       (nowDate.getUTCHours() === 15 || nowDate.getUTCHours() === 17)
     ) {
       if (!(await hasQueuedHunt())) {
-        console.error("No hunt queued for next Monday");
+        warnings.push("No hunt queued for next Monday");
       }
     }
 
@@ -133,6 +134,7 @@ export async function GET(request: Request) {
       failed,
       pending: unnotified.length - sweep.length,
       deleted,
+      warnings,
     });
   } catch (error) {
     console.error("Failed to close hunts:", error);

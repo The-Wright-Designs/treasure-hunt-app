@@ -38,11 +38,11 @@ export async function GET(request: Request) {
       const isMondayCheckHour =
         now.getUTCDay() === 1 && [5, 6, 7].includes(now.getUTCHours());
 
-      if (isMondayCheckHour) {
-        console.error("No hunt queued to open on Monday");
-      }
+      const warnings = isMondayCheckHour
+        ? ["No hunt queued to open on Monday"]
+        : [];
 
-      return Response.json({ opened: 0, queued: 0 });
+      return Response.json({ opened: 0, queued: 0, warnings });
     }
 
     const next = due[0];

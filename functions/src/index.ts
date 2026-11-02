@@ -18,6 +18,15 @@ async function callCron(path: string) {
   }
 
   logger.info(`${path} ok`, { body });
+
+  let warnings: string[] = [];
+  try {
+    warnings = JSON.parse(body).warnings ?? [];
+  } catch {
+    logger.error(`${path} returned a non-JSON body`, { body });
+  }
+
+  warnings.forEach((warning) => logger.error(`${path}: ${warning}`));
 }
 
 export const closeHunts = onSchedule(
