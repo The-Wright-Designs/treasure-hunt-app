@@ -65,31 +65,103 @@ function registrationFields(
   };
 }
 
-export async function createSession(
-  idToken: string,
-  phone?: string,
-  details?: {
+export async function registerUser(
+  recaptchaToken: string,
+  values: {
+    name: string;
+    phone: string;
+    email: string;
+    password: string;
     dateOfBirth: string;
     school?: string;
     address?: string;
     parent?: ParentDetails;
   },
-) {
+): Promise<{ customToken?: string; error?: string }> {
+  const recaptcha = await verifyRecaptchaToken(recaptchaToken);
+  if (!recaptcha.success) {
+    return {
+      error: "Security check failed. Please refresh the page and try again.",
+    };
+  }
+
+  const name = values.name.trim().slice(0, 100);
+  const phone = values.phone.trim();
+  const email = values.email.trim().toLowerCase();
+  const { password } = values;
+
+  let fields;
+  try {
+    fields = registrationFields(values, email);
+  } catch {
+    fields = null;
+  }
+
+  if (
+    !fields ||
+    name.length < 2 ||
+    !/^(\+27|0)[6-8][0-9]{8}$/.test(phone) ||
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
+    !/[A-Z]/.test(password) ||
+    !/[a-z]/.test(password) ||
+    !/[^A-Za-z0-9]/.test(password) ||
+    !/[0-9]/.test(password)
+  ) {
+    return { error: "Please check your details and try again." };
+  }
+
+  let uid: string;
+  try {
+    ({ uid } = await adminAuth.createUser({
+      email,
+      password,
+      displayName: name,
+    }));
+  } catch (error) {
+    const code = (error as { code?: string }).code;
+    if (code === "auth/email-already-exists") {
+      return { error: "An account with this email already exists." };
+    }
+    if (code === "auth/invalid-password") {
+      return {
+        error: "Password is too weak. Please choose a stronger password.",
+      };
+    }
+    if (code === "auth/invalid-email") {
+      return { error: "Please enter a valid email address." };
+    }
+    console.error("Failed to create user:", error);
+    return { error: "Something went wrong. Please try again." };
+  }
+
+  try {
+    await adminDb
+      .collection("users")
+      .doc(uid)
+      .set({ name, email, emailVerified: false, phone, ...fields });
+    return { customToken: await adminAuth.createCustomToken(uid) };
+  } catch (error) {
+    console.error("Registration failed, rolling back:", error);
+    await Promise.allSettled([
+      adminAuth.deleteUser(uid),
+      adminDb.collection("users").doc(uid).delete(),
+    ]);
+    return { error: "Something went wrong. Please try again." };
+  }
+}
+
+export async function createSession(idToken: string) {
   const expiresIn = 60 * 60 * 24 * 7 * 1000;
   const decoded = await adminAuth.verifyIdToken(idToken);
   const userRef = adminDb.collection("users").doc(decoded.uid);
   const existing = (await userRef.get()).data() as
-    | { email?: string; consent?: unknown }
+    | { email?: string }
     | undefined;
   await userRef.set(
     {
-      name: decoded.name ?? "",
+      name: (decoded.name ?? "").slice(0, 100),
       ...(!existing?.email && { email: decoded.email ?? "" }),
       emailVerified: decoded.email_verified === true,
-      ...(phone !== undefined && { phone }),
-      ...(details &&
-        !existing?.consent &&
-        registrationFields(details, decoded.email ?? "")),
     },
     { merge: true }
   );

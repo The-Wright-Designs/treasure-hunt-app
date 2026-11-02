@@ -3,18 +3,15 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
-import {
-  createUserWithEmailAndPassword,
-  updateProfile,
-} from "firebase/auth";
+import { signInWithCustomToken } from "firebase/auth";
 import Image from "next/image";
 import Link from "next/link";
 import { Check, X } from "lucide-react";
 import { auth } from "@/_lib/firebase-client";
 import {
   createSession,
+  registerUser,
   sendVerificationEmail,
-  verifyAuthRecaptcha,
 } from "@/_actions/auth-actions";
 import { requestParentalConsent } from "@/_actions/consent-actions";
 import {
@@ -359,22 +356,17 @@ const RegisterComponent = () => {
                   return;
                 }
                 setRegistering(true);
+                let customToken: string | undefined;
                 try {
                   if (!executeRecaptcha) {
                     throw new Error("reCAPTCHA: not ready");
                   }
                   const token = await executeRecaptcha("register");
-                  await verifyAuthRecaptcha(token);
-                  const credential = await createUserWithEmailAndPassword(
-                    auth,
-                    values.email,
-                    values.password,
-                  );
-                  await updateProfile(credential.user, {
-                    displayName: values.name,
-                  });
-                  const idToken = await credential.user.getIdToken(true);
-                  await createSession(idToken, values.phone, {
+                  const result = await registerUser(token, {
+                    name: values.name,
+                    phone: values.phone,
+                    email: values.email,
+                    password: values.password,
                     dateOfBirth: values.dateOfBirth,
                     school: values.school,
                     address: values.address,
@@ -387,22 +379,27 @@ const RegisterComponent = () => {
                       },
                     }),
                   });
+                  if (!result.customToken) {
+                    setError(result.error ?? "Something went wrong. Please try again.");
+                    setValues((prev) => ({ ...prev, password: "", confirmPassword: "" }));
+                    setRegistering(false);
+                    return;
+                  }
+                  customToken = result.customToken;
+                  const credential = await signInWithCustomToken(auth, customToken);
+                  await createSession(await credential.user.getIdToken());
                   await sendVerificationEmail();
                   if (needsParent) await requestParentalConsent();
                   router.push("/dashboard");
                 } catch (err) {
                   const message = err instanceof Error ? err.message : "";
-                  if (message.includes("reCAPTCHA")) {
+                  if (customToken) {
+                    setError(
+                      "Your account was created, but we couldn't log you in. Please log in instead.",
+                    );
+                  } else if (message.includes("reCAPTCHA")) {
                     setError(
                       "Security check failed. Please refresh the page and try again.",
-                    );
-                  } else if (message.includes("auth/email-already-in-use")) {
-                    setError("An account with this email already exists.");
-                  } else if (message.includes("auth/invalid-email")) {
-                    setError("Please enter a valid email address.");
-                  } else if (message.includes("auth/weak-password")) {
-                    setError(
-                      "Password is too weak. Please choose a stronger password.",
                     );
                   } else {
                     setError("Something went wrong. Please try again.");
